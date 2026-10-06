@@ -26,15 +26,15 @@ Le dossier `docs/` est organisé par livrable : voir [docs/README.md](docs/READM
 
 - **Backend** : Laravel (PHP), API REST
 - **Frontend** : React, TailwindCSS, DaisyUI
-- **Base de données** : à confirmer par l'équipe (MySQL ou PostgreSQL, la même pour tous)
+- **Base de données** : PostgreSQL
 - **Maquette** : Figma, déployée sur Vercel
 - **Outils** : GitHub, Jira, VS Code
 
 ## Liens du projet
 
-- Maquette Figma : *(à compléter)*
-- Maquette en ligne (Vercel) : *(à compléter)*
-- Jira : *(à compléter)*
+- Maquette Figma : _(à compléter)_
+- Maquette en ligne (Vercel) : _(à compléter)_
+- Jira : _(à compléter)_
 
 ## Démarrer
 
