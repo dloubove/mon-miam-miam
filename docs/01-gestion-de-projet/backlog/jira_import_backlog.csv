@@ -1,0 +1,500 @@
+Issue id,Backlog ID,Summary,Issue Type,Description,Priority,Story point estimate,Sprint,Labels,Labels,Labels,Labels,Parent
+1,EP-01,Conception et socle technique,Epic,"Maquettes, base de données, diagrammes UML, dépôt, initialisation Laravel et React.",,,,,,,,
+2,EP-02,Comptes et accès,Epic,"Inscription, connexion, récupération du mot de passe, rôles et consentement cookies.",,,,,,,,
+3,EP-03,Menu et accueil,Epic,"Page d'accueil, consultation et gestion du menu, promotions et événements.",,,,,,,,
+4,EP-04,Commande,Epic,"Panier, commande sur place ou en livraison, historique, gestion par les employés et supervision par le gérant.",,,,,,,,
+5,EP-05,Fidélité et parrainage,Epic,"Points de fidélité, utilisation en réduction, codes de parrainage et récompenses.",,,,,,,,
+6,EP-06,Réclamations,Epic,"Dépôt, traitement, validation et suivi des réclamations, y compris celles sur les points.",,,,,,,,
+7,EP-07,Administration et statistiques,Epic,"Comptes employés, paramètres de l'application et statistiques.",,,,,,,,
+8,EP-08,"Qualité, tests et déploiement",Epic,"Tests unitaires, fonctionnels et E2E, CI/CD, bêta-test, compatibilité navigateurs.",,,,,,,,
+9,EP-09,Documentation et gestion de projet,Epic,"Risques, budget, aspects juridiques, documentation technique et API, manuels, rapports.",,,,,,,,
+10,EP-10,Bonus,Epic,"Top 10 des clients, mini-jeux, paiement en ligne.",,,,,,,,
+11,S0-01,[S0-01] Créer l'espace de travail Jira,Task,"Créer l'espace de travail Jira (projet, backlog, board, sprints)
+Responsable(s) suggéré(s) : Dan
+Échéance : 30/09 (2 jours max)",High,,Sprint 0,conception,,,,1
+12,S0-02,[S0-02] Créer le dépôt GitHub,Task,"Créer le dépôt GitHub (dossiers frontend/backend, branches `main`, `develop`, `feature/*`)
+Responsable(s) suggéré(s) : Dan, Julio
+Échéance : 30/09",High,,Sprint 0,conception,,,,1
+13,S0-03,[S0-03] Prototype Figma fonctionnel,Task,"Prototype Figma fonctionnel : accueil, authentification, espaces étudiant, employé, gérant et administrateur
+Responsable(s) suggéré(s) : Nabil, Nathan
+Échéance : 01/10 (3 jours max)",High,,Sprint 0,conception,,,,1
+14,S0-04,[S0-04] Charte graphique dans Figma,Task,"Charte graphique (police, couleurs #cfbd97 et #000000) dans Figma
+Responsable(s) suggéré(s) : Nabil, Nathan
+Échéance : 01/10",High,,Sprint 0,conception,,,,1
+15,S0-05,[S0-05] Déployer la maquette sur Vercel,Task,"Déployer la maquette sur Vercel
+Responsable(s) suggéré(s) : Nabil, Nathan
+Échéance : 01/10",High,,Sprint 0,conception,,,,1
+16,S0-06,[S0-06] MCD et MLD,Task,"MCD et MLD (Mocodo, PostgreSQL, DataGrip)
+Responsable(s) suggéré(s) : Siméon
+Échéance : 2 jours max",High,,Sprint 0,conception,,,,1
+17,S0-07,[S0-07] Diagramme de cas d'utilisation UML,Task,"Diagramme de cas d'utilisation UML (Draw.io)
+Responsable(s) suggéré(s) : Julio, Kadir
+Échéance : 01/10",High,,Sprint 0,conception,,,,1
+18,S0-08,[S0-08] Diagramme de séquence UML,Task,"Diagramme de séquence UML (Draw.io)
+Responsable(s) suggéré(s) : Julio, Kadir
+Échéance : 01/10",High,,Sprint 0,conception,,,,1
+19,S0-09,[S0-09] Initialiser Laravel et PostgreSQL,Task,"Initialiser Laravel et la connexion PostgreSQL
+Responsable(s) suggéré(s) : Julio, Dan
+Échéance : 01/10",High,,Sprint 0,conception,,,,1
+20,S0-10,[S0-10] Comptes rendus de réunion,Task,"Compte rendu de chaque réunion d'équipe
+Responsable(s) suggéré(s) : Scrum Master
+Échéance : En continu",High,,Sprint 0,conception,,,,1
+21,MM-49,[MM-49] Initialiser le frontend React,Story,"En tant que développeur front-end, je veux un projet React configuré (Vite, TailwindCSS, DaisyUI aux couleurs de la charte, routage, layouts par rôle) afin de développer les écrans de façon homogène.
+
+Critères d'acceptation : Thème DaisyUI aux couleurs #cfbd97 et #000000. Routes protégées par rôle. Lancement en une commande.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front
+ID backlog : MM-49
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 1,must,frontend,front,,1
+22,MM-01,[MM-01] Inscription étudiant,Story,"En tant qu'étudiant, je veux créer un compte (nom, email, téléphone, localisation, mot de passe) afin de pouvoir commander.
+
+Critères d'acceptation : Mot de passe avec au moins 1 majuscule et 1 chiffre. Email unique. Messages d'erreur clairs.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back, Front
+ID backlog : MM-01
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 1,must,authentification,back,front,2
+23,MM-02,[MM-02] Connexion et déconnexion sécurisées,Story,"En tant qu'utilisateur, je veux me connecter et me déconnecter de façon sécurisée afin d'accéder à mon espace.
+
+Critères d'acceptation : Mot de passe haché. Redirection vers l'espace correspondant au rôle.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back, Front
+ID backlog : MM-02
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 1,must,authentification,back,front,2
+24,MM-03,[MM-03] Récupération du mot de passe,Story,"En tant qu'utilisateur, je veux récupérer mon mot de passe par un lien afin de ne pas perdre mon compte.
+
+Critères d'acceptation : Lien envoyé par email, à durée limitée. Nouveau mot de passe soumis aux mêmes règles.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-03
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 1,should,authentification,back,front,2
+25,MM-04,[MM-04] Rôles et permissions,Story,"En tant qu'administrateur, je veux que chaque rôle (étudiant, employé, gérant, admin) n'accède qu'à son espace afin de protéger les données.
+
+Critères d'acceptation : Accès refusé (403) aux espaces non autorisés. Vérifié par tests.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back
+ID backlog : MM-04
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 1,must,authentification,back,,2
+26,MM-05,[MM-05] Page d'accueil,Story,"En tant qu'étudiant, je veux voir sur la page d'accueil le menu du jour, les promotions et les événements afin de choisir rapidement.
+
+Critères d'acceptation : Contenu alimenté par l'API. Affichage responsive.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front, Back
+ID backlog : MM-05
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 1,must,menu-accueil,front,back,3
+27,MM-06,[MM-06] Consultation du menu,Story,"En tant qu'étudiant, je veux consulter le menu (catégories, prix, disponibilité) afin de préparer ma commande.
+
+Critères d'acceptation : Articles épuisés signalés. Tableaux et listes mis à jour dynamiquement (AJAX).
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front, Back
+ID backlog : MM-06
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 1,must,menu-accueil,front,back,3
+28,MM-07,[MM-07] CRUD du menu (admin),Story,"En tant qu'administrateur, je veux créer, modifier et supprimer les éléments du menu afin de le tenir à jour.
+
+Critères d'acceptation : CRUD complet avec validation des champs.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back, Front
+ID backlog : MM-07
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 1,must,menu-accueil,back,front,3
+29,MM-08,[MM-08] Gestion des comptes employés,Story,"En tant qu'administrateur ou gérant, je veux ajouter des comptes employés (l'administrateur peut aussi les modifier et les supprimer) afin de leur donner accès à l'application.
+
+Critères d'acceptation : Création avec attribution du rôle. Suppression réservée à l'admin.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back, Front
+ID backlog : MM-08
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 1,must,administration,back,front,7
+30,MM-09,[MM-09] Promotions et événements (affiches),Story,"En tant qu'administrateur, je veux créer des promotions et des événements sous forme d'affiches afin de stimuler les ventes.
+
+Critères d'acceptation : Upload d'image, dates de début et de fin. Affichage sur l'accueil.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-09
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,5,Sprint 1,should,menu-accueil,back,front,3
+31,MM-10,[MM-10] Bandeau de consentement cookies,Story,"En tant que visiteur, je veux être informé de l'usage des cookies et donner mon consentement afin que mes données soient protégées (RGPD).
+
+Critères d'acceptation : Bandeau à la première visite. Choix mémorisé.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front
+ID backlog : MM-10
+
+Voir la Definition of Done dans BACKLOG.md.",High,2,Sprint 1,must,rgpd,front,,2
+32,MM-11,[MM-11] Migrations et seeders,Task,"En tant qu'équipe, je veux des migrations et des seeders issus du MLD afin de partager une base de données identique.
+
+Critères d'acceptation : Comptes de test pour chaque rôle. Base recréable en une commande.
+
+Priorité MoSCoW : Must
+Équipe suggérée : BDD
+ID backlog : MM-11
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 1,must,base-de-donnees,bdd,,1
+33,MM-12,[MM-12] Tests unitaires authentification et rôles,Task,"En tant qu'équipe, je veux des tests unitaires sur l'authentification et les rôles afin de sécuriser ce socle.
+
+Critères d'acceptation : Tests au vert sur inscription, connexion et accès par rôle.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back
+ID backlog : MM-12
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 1,must,tests,back,,8
+34,MM-13,[MM-13] Plan de gestion des risques,Task,"En tant qu'équipe, je veux un plan de gestion des risques afin d'anticiper délais, bugs critiques et pannes serveur.
+
+Critères d'acceptation : Risques identifiés avec mesures d'atténuation.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Doc
+ID backlog : MM-13
+
+Voir la Definition of Done dans BACKLOG.md.",High,2,Sprint 1,must,gestion-projet,doc,,9
+35,MM-14,[MM-14] Panier,Story,"En tant qu'étudiant, je veux ajouter des articles à un panier et modifier les quantités afin de préparer ma commande.
+
+Critères d'acceptation : Total recalculé automatiquement. Suppression d'un article possible.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front, Back
+ID backlog : MM-14
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 2,must,commande,front,back,4
+36,MM-15,[MM-15] Validation de commande (sur place / livraison),Story,"En tant qu'étudiant, je veux valider ma commande sur place (avec heure d'arrivée) ou en livraison (avec localisation) afin d'être servi.
+
+Critères d'acceptation : Choix du mode obligatoire. Commande enregistrée avec statut « en attente ».
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back, Front
+ID backlog : MM-15
+
+Voir la Definition of Done dans BACKLOG.md.",High,8,Sprint 2,must,commande,back,front,4
+37,MM-16,[MM-16] Historique des commandes,Story,"En tant qu'étudiant, je veux consulter l'historique de mes commandes et leurs détails afin de suivre mes achats.
+
+Critères d'acceptation : Liste triée par date. Détail de chaque commande. Statut de la commande visible.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front, Back
+ID backlog : MM-16
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 2,must,commande,front,back,4
+38,MM-17,[MM-17] Commentaire après livraison,Story,"En tant qu'étudiant, je veux laisser un commentaire une fois ma commande livrée afin de donner mon avis.
+
+Critères d'acceptation : Possible uniquement pour une commande livrée.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-17
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,2,Sprint 2,should,commande,back,front,4
+39,MM-18,[MM-18] Gestion des commandes (employé),Story,"En tant qu'employé, je veux consulter, préparer et valider les commandes afin de traiter efficacement le flux.
+
+Critères d'acceptation : Tableau actualisé automatiquement (AJAX). Statuts : en attente, en préparation, prête ou en livraison, livrée. Changements de statut tracés.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front, Back
+ID backlog : MM-18
+
+Voir la Definition of Done dans BACKLOG.md.",High,8,Sprint 2,must,commande,front,back,4
+40,MM-19,[MM-19] Mise à jour temporaire du menu (employé),Story,"En tant qu'employé, je veux modifier temporairement le menu (plat épuisé, plat du jour) afin d'informer les clients en temps réel.
+
+Critères d'acceptation : Changement visible immédiatement côté étudiant.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back, Front
+ID backlog : MM-19
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 2,must,commande,back,front,4
+41,MM-20,[MM-20] Supervision des commandes (gérant),Story,"En tant que gérant, je veux superviser l'état des commandes en temps réel afin de surveiller le service.
+
+Critères d'acceptation : Vue globale de toutes les commandes en cours.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Front, Back
+ID backlog : MM-20
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 2,should,commande,front,back,4
+42,MM-21,[MM-21] Gain automatique de points,Story,"En tant qu'étudiant, je veux gagner automatiquement des points à chaque commande afin d'être récompensé (1 000 F dépensés = 1 point).
+
+Critères d'acceptation : Points ajoutés au solde après validation de la commande. Conversion paramétrable.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back
+ID backlog : MM-21
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,5,Sprint 2,should,fidelite,back,,5
+43,MM-22,[MM-22] Solde et historique des points,Story,"En tant qu'étudiant, je veux voir mon solde et l'historique de mes points afin de suivre ma fidélité.
+
+Critères d'acceptation : Solde dans le profil. Tableau des points par commande.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Front, Back
+ID backlog : MM-22
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 2,should,fidelite,front,back,5
+44,MM-23,[MM-23] Utilisation des points en réduction,Story,"En tant qu'étudiant, je veux utiliser mes points pour réduire le montant d'une commande (15 points = 1 000 F) afin de profiter de ma fidélité.
+
+Critères d'acceptation : Seuil minimal vérifié. Réduction calculée et points déduits.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-23
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,5,Sprint 2,should,fidelite,back,front,5
+45,MM-24,[MM-24] Paramètres de l'application,Story,"En tant qu'administrateur, je veux configurer les paramètres de l'application (horaires d'ouverture, taux de conversion, durée de validité des points, points de parrainage) afin d'adapter les règles.
+
+Critères d'acceptation : Paramètres modifiables sans toucher au code, dont les points offerts au parrain.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-24
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 2,should,administration,back,front,7
+46,MM-25,[MM-25] Tests unitaires commandes et points,Task,"En tant qu'équipe, je veux des tests unitaires sur les commandes et les points afin de garantir les calculs.
+
+Critères d'acceptation : Tests au vert sur création de commande, attribution et utilisation des points.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back
+ID backlog : MM-25
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 2,must,tests,back,,8
+47,MM-26,[MM-26] Analyse budgétaire,Task,"En tant qu'équipe, je veux une analyse budgétaire du projet afin de l'inclure aux livrables.
+
+Critères d'acceptation : Document rédigé et relu par le PO.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Doc
+ID backlog : MM-26
+
+Voir la Definition of Done dans BACKLOG.md.",High,2,Sprint 2,must,gestion-projet,doc,,9
+48,MM-27,[MM-27] Mentions légales et aspects juridiques,Task,"En tant qu'équipe, je veux les mentions légales et les aspects juridiques associés afin d'être conforme.
+
+Critères d'acceptation : Mentions légales et politique de confidentialité intégrées au site (générateur en ligne possible).
+
+Priorité MoSCoW : Must
+Équipe suggérée : Doc, Front
+ID backlog : MM-27
+
+Voir la Definition of Done dans BACKLOG.md.",High,2,Sprint 2,must,juridique,doc,front,9
+49,MM-42,[MM-42] CI/CD et déploiement,Task,"CI/CD GitHub Actions et déploiement : backend sur une plateforme cloud avec base PostgreSQL de production, frontend sur Vercel
+
+Critères d'acceptation : `develop` déployée automatiquement sur un environnement de test, `main` sur la production. Application accessible en ligne.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back
+ID backlog : MM-42
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 2,must,deploiement,back,,8
+50,MM-28,[MM-28] Génération du code de parrainage,Story,"En tant qu'étudiant, je veux générer mon code de parrainage unique afin de le partager.
+
+Critères d'acceptation : Un seul code par utilisateur, unique.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-28
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 3,should,parrainage,back,front,5
+51,MM-29,[MM-29] Utilisation du code de parrainage,Story,"En tant que nouvel étudiant, je veux saisir un code de parrainage à l'inscription afin de rattacher mon compte à mon parrain.
+
+Critères d'acceptation : Code invalide refusé. Lien parrain/filleul enregistré. Moment de saisie (inscription ou première commande) à confirmer avec le client.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-29
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 3,should,parrainage,back,front,5
+52,MM-30,[MM-30] Récompense du parrain,Story,"En tant que parrain, je veux gagner des points quand mon filleul passe sa première commande réussie afin d'être récompensé.
+
+Critères d'acceptation : Récompense attribuée une seule fois. Statut « récompense attribuée ».
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back
+ID backlog : MM-30
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,5,Sprint 3,should,parrainage,back,,5
+53,MM-31,[MM-31] Suivi des filleuls,Story,"En tant que parrain, je veux suivre la liste de mes filleuls et l'état de leur première commande afin de savoir si j'ai été récompensé.
+
+Critères d'acceptation : Liste avec statut par filleul.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Front, Back
+ID backlog : MM-31
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,2,Sprint 3,should,parrainage,front,back,5
+54,MM-32,[MM-32] Réclamation étudiant,Story,"En tant qu'étudiant, je veux signaler un problème sur une commande et suivre l'état de ma réclamation afin d'obtenir une solution.
+
+Critères d'acceptation : Réclamation liée à une commande. Statuts visibles.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-32
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,5,Sprint 3,should,reclamations,back,front,6
+55,MM-33,[MM-33] Traitement des réclamations (employé),Story,"En tant qu'employé, je veux consulter et répondre aux réclamations afin de les traiter.
+
+Critères d'acceptation : Tableau de bord des réclamations. Réponse proposée.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Front, Back
+ID backlog : MM-33
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 3,should,reclamations,front,back,6
+56,MM-34,[MM-34] Validation des réclamations (gérant/admin),Story,"En tant que gérant, je veux valider ou rejeter les réponses proposées, et en tant qu'administrateur suivre les réclamations, afin de garder le contrôle.
+
+Critères d'acceptation : Décision tracée. Vue de suivi pour l'admin.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-34
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 3,should,reclamations,back,front,6
+57,MM-50,[MM-50] Validation manuelle des réclamations de points,Story,"En tant qu'administrateur, je veux valider manuellement une réclamation de points afin de corriger le solde d'un étudiant en cas d'erreur.
+
+Critères d'acceptation : Ajustement de points tracé (motif, date, auteur). Solde mis à jour.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-50
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,3,Sprint 3,should,reclamations,back,front,6
+58,MM-35,[MM-35] Statistiques hebdomadaires (employé),Story,"En tant qu'employé, je veux voir les statistiques de ventes de la semaine afin d'ajuster mon travail.
+
+Critères d'acceptation : Ventes et commandes de la semaine.
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-35
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,5,Sprint 3,should,statistiques,back,front,7
+59,MM-36,[MM-36] Statistiques générales (gérant/admin),Story,"En tant que gérant ou administrateur, je veux voir les statistiques générales (ventes, commandes, fidélité, parrainage) afin de piloter le restaurant.
+
+Critères d'acceptation : Graphiques et totaux actualisés automatiquement (AJAX).
+
+Priorité MoSCoW : Should
+Équipe suggérée : Back, Front
+ID backlog : MM-36
+
+Voir la Definition of Done dans BACKLOG.md.",Medium,5,Sprint 3,should,statistiques,back,front,7
+60,MM-37,[MM-37] Expiration automatique des points,Story,"En tant qu'administrateur, je veux que les points expirent automatiquement après la durée définie (ex. 12 mois) afin de respecter la politique de fidélité.
+
+Critères d'acceptation : Tâche planifiée. Points expirés retirés du solde.
+
+Priorité MoSCoW : Could
+Équipe suggérée : Back
+ID backlog : MM-37
+
+Voir la Definition of Done dans BACKLOG.md.",Low,3,Sprint 3,could,fidelite,back,,5
+61,MM-38,[MM-38] Top 10 des meilleurs clients,Story,"En tant qu'étudiant, je veux voir les 10 meilleurs clients avec filtre jour, semaine ou mois afin de me comparer aux autres.
+
+Critères d'acceptation : Classement par nombre de commandes.
+
+Priorité MoSCoW : Could
+Équipe suggérée : Back, Front
+ID backlog : MM-38
+
+Voir la Definition of Done dans BACKLOG.md.",Low,3,Sprint 3,could,engagement,back,front,10
+62,MM-39,[MM-39] Mini-jeux et événements,Story,"En tant qu'étudiant, je veux participer à des mini-jeux et événements afin de gagner des prix ou des points.
+
+Critères d'acceptation : Au moins un mini-jeu fonctionnel avec gain de points.
+
+Priorité MoSCoW : Could
+Équipe suggérée : Front, Back
+ID backlog : MM-39
+
+Voir la Definition of Done dans BACKLOG.md.",Low,8,Sprint 3,could,engagement,front,back,10
+63,MM-40,[MM-40] Paiement en ligne (bonus),Story,"En tant qu'étudiant, je veux payer en ligne via un agrégateur (Mobile Money, carte) afin d'éviter les paiements sur place.
+
+Critères d'acceptation : Intégration CinetPay ou Stripe. Fonctionnalité bonus, non obligatoire.
+
+Priorité MoSCoW : Could
+Équipe suggérée : Back, Front
+ID backlog : MM-40
+
+Voir la Definition of Done dans BACKLOG.md.",Low,13,Sprint 3,could,paiement,back,front,10
+64,MM-51,[MM-51] Tests unitaires du parrainage,Task,"Tests unitaires du parrainage (génération et utilisation des codes, attribution des récompenses)
+
+Critères d'acceptation : Tests au vert sur les trois cas.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back
+ID backlog : MM-51
+
+Voir la Definition of Done dans BACKLOG.md.",High,2,Sprint 3,must,tests,back,,8
+65,MM-41,"[MM-41] Tests fonctionnels, E2E et rapport de test",Task,"Tests fonctionnels et end-to-end (de la commande à la livraison) et rapport de test
+
+Critères d'acceptation : Fonctionnalités critiques couvertes (connexion, commande, fidélité). Rapport rédigé.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Tous
+ID backlog : MM-41
+
+Voir la Definition of Done dans BACKLOG.md.",High,5,Sprint 3,must,tests,tous,,8
+66,MM-43,[MM-43] Documentation de l'API REST,Task,"Documentation de l'API REST
+
+Critères d'acceptation : Endpoints documentés (Postman ou OpenAPI).
+
+Priorité MoSCoW : Must
+Équipe suggérée : Back
+ID backlog : MM-43
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 3,must,documentation,back,,9
+67,MM-44,[MM-44] Documentation technique,Task,"Documentation technique : architecture MVC, guide d'installation, schémas de la base de données, charte graphique
+
+Critères d'acceptation : Installation reproductible en local et en production. Évolution future vers plusieurs restaurants mentionnée.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Doc
+ID backlog : MM-44
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 3,must,documentation,doc,,9
+68,MM-45,[MM-45] Manuel d'utilisation par rôle,Task,"Manuel d'utilisation par rôle (étudiant, employé, gérant, administrateur)
+
+Critères d'acceptation : Un guide par rôle avec captures d'écran.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Doc
+ID backlog : MM-45
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 3,must,documentation,doc,,9
+69,MM-46,[MM-46] Version test et bêta-test,Task,"Version test en préproduction et bêta-test avec un groupe restreint
+
+Critères d'acceptation : Retours collectés et priorisés.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Tous
+ID backlog : MM-46
+
+Voir la Definition of Done dans BACKLOG.md.",High,3,Sprint 3,must,qualite,tous,,8
+70,MM-47,[MM-47] Compatibilité navigateurs,Task,"Vérifier la compatibilité navigateurs (Chrome, Firefox, Safari)
+
+Critères d'acceptation : Parcours principaux validés sur les 3 navigateurs.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Front
+ID backlog : MM-47
+
+Voir la Definition of Done dans BACKLOG.md.",High,2,Sprint 3,must,qualite,front,,8
+71,MM-48,[MM-48] Rapports de sprint et comptes rendus,Task,"Rapport d'avancement de chaque sprint et comptes rendus de réunion
+
+Critères d'acceptation : Un rapport par sprint, déposé dans le dépôt.
+
+Priorité MoSCoW : Must
+Équipe suggérée : Scrum Master
+ID backlog : MM-48
+
+Voir la Definition of Done dans BACKLOG.md.",High,2,Sprint 3,must,gestion-projet,scrum-master,,9

@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  backend:
+    name: Backend (tests Laravel)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier la présence du backend
+        id: has
+        run: |
+          if [ -f backend/composer.json ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: shivammathur/setup-php@v2
+        if: steps.has.outputs.ok == 'true'
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo, sqlite, pdo_sqlite
+      - name: Installer les dépendances
+        if: steps.has.outputs.ok == 'true'
+        working-directory: backend
+        run: |
+          composer install --no-interaction --prefer-dist
+          cp .env.example .env
+          php artisan key:generate
+      - name: Lancer les tests
+        if: steps.has.outputs.ok == 'true'
+        working-directory: backend
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+        run: php artisan test
+
+  frontend:
+    name: Frontend (build React)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vérifier la présence du frontend
+        id: has
+        run: |
+          if [ -f frontend/package.json ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-node@v4
+        if: steps.has.outputs.ok == 'true'
+        with:
+          node-version: 20
+      - name: Installer et construire
+        if: steps.has.outputs.ok == 'true'
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          npm test --if-present
