@@ -32,7 +32,7 @@ The `docs/` folder is organized by deliverable: see [docs/README.en.md](docs/REA
 
 ## Project links
 
-- Figma mockup: [Open the Figma prototype](https://www.figma.com/proto/Z55RYti3JixBN2vdx1GIMn/Site-Zeduc-Space?node-id=38-1806&starting-point-node-id=38%3A1806&t=HWd41s4Rei9KPb0x-1)
+- Figma mockup: [Open the Figma prototype](https://www.figma.com/proto/Z55RYti3JixBN2vdx1GIMn/Site-Zeduc-Space?node-id=38-1806&starting-point-node-id=38%3A1806)
 - Online mockup (Vercel): [mon-miam-miam-prototype-figma.vercel.app](https://mon-miam-miam-prototype-figma.vercel.app)
 - Jira: [Project Jira board](https://2030-team-tnjko9vn.atlassian.net/jira/software/projects/MM/boards/68/backlog)
 

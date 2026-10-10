@@ -32,7 +32,7 @@ Le dossier `docs/` est organisé par livrable : voir [docs/README.md](docs/READM
 
 ## Liens du projet
 
-- Maquette Figma : [Ouvrir le prototype Figma](https://www.figma.com/proto/Z55RYti3JixBN2vdx1GIMn/Site-Zeduc-Space?node-id=38-1806&starting-point-node-id=38%3A1806&t=HWd41s4Rei9KPb0x-1)
+- Maquette Figma : [Ouvrir le prototype Figma](https://www.figma.com/proto/Z55RYti3JixBN2vdx1GIMn/Site-Zeduc-Space?node-id=38-1806&starting-point-node-id=38%3A1806)
 - Maquette en ligne (Vercel) : [mon-miam-miam-prototype-figma.vercel.app](https://mon-miam-miam-prototype-figma.vercel.app)
 - Jira : [Tableau Jira du projet](https://2030-team-tnjko9vn.atlassian.net/jira/software/projects/MM/boards/68/backlog)
 
