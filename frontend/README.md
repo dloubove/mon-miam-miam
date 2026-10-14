@@ -1,16 +1,40 @@
-# React + Vite
+# Frontend — Mon Miam Miam (ZeDuc@Space)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + Vite + Tailwind 4 + DaisyUI 5 + React Router. Thème sombre fidèle à la maquette « Site ZeDuc@Space ».
 
-Currently, two official plugins are available:
+## Lancer
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build
+npm run lint
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Comptes de démonstration (mot de passe libre)
+| Rôle | Email | Espace |
+|---|---|---|
+| Étudiant | etudiant@ucac-icam.com | /mon-espace |
+| Employé | paul@zeduc.com | /staff |
+| Gérant | marc@zeduc.com | /direction |
+| Administrateur | admin@zeduc.com | /direction (+ équipe, règles) |
 
-## React Compiler
+En mode dev, des boutons « Accès démo » sont aussi présents sous le formulaire de connexion.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Pages
+`/` accueil · `/connexion` · `/inscription` · `/panier` · `/mon-espace` · `/mon-espace/profil` · `/jeux` · `/jeux/roue` · `/jeux/devine-le-plat` ·
+`/staff` · `/staff/menu` · `/staff/reclamations` · `/staff/profil` ·
+`/direction` · `/direction/catalogue` · `/direction/equipe` (admin) · `/direction/marketing` · `/direction/profil`
 
-## Expanding the ESLint configuration
+Toutes les modales de la maquette sont implémentées (ajout panier, validation commande, suivi livreur, signalement, suppression de compte,
+composer le menu, traiter une réclamation, nouvel événement, nouveau membre, nouveau plat).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Architecture
+- `src/context/AppContext.jsx` : état global **local** (auth, panier, commandes, réclamations, menu, équipe, événements, règles).
+  Chaque bloc est à remplacer par des appels à l'API Laravel (`VITE_API_URL`).
+- `src/data/mock.js` : données de démonstration.
+- `src/layouts/` : navbar étudiant, staff, sidebar direction, écran d'authentification.
+- `src/pages/` : une page par écran de la maquette.
+
+## Points à brancher sur le backend
+Authentification réelle (tokens), paiement Mobile Money/carte, persistance des commandes/points, envoi d'email (mot de passe oublié),
+upload des images (aujourd'hui en base64 local), remplacement des images de `public/images` par les photos d'origine.
