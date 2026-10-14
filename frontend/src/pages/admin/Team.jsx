@@ -1,0 +1,76 @@
+import { useState } from 'react'
+import { Pencil, Trash2, UserPlus } from 'lucide-react'
+import { Field, Modal, PageTitle } from '../../components/ui.jsx'
+import { useApp } from '../../context/AppContext.jsx'
+import { isEmail } from '../../utils/format.js'
+
+const ROLE_LABEL = { gerant: 'Gérant', employe: 'Employé' }
+
+function MemberModal({ member, open, onClose }) {
+  const { addMember, updateMember, removeMember, toast } = useApp()
+  const [f, setF] = useState({ firstName: '', lastName: '', email: '', role: 'employe' })
+  const [key, setKey] = useState(null)
+  const k = open ? (member?.id ?? 'new') : null
+  if (k !== key) {
+    setKey(k)
+    if (open) setF(member ? { firstName: member.name, lastName: '', email: member.email, role: member.role } : { firstName: '', lastName: '', email: '', role: 'employe' })
+  }
+  const submit = (e) => {
+    e.preventDefault()
+    if (!f.firstName.trim() || !isEmail(f.email)) return toast('Prénom et email valides requis', 'error')
+    if (member) { updateMember(member.id, { name: `${f.firstName} ${f.lastName}`.trim(), email: f.email, role: f.role }); toast('Membre modifié') }
+    else { addMember(f); toast('Accès créé : invitation envoyée par email') }
+    onClose()
+  }
+  return (
+    <Modal open={open} onClose={onClose} title={member ? 'Modifier le membre' : 'Ajouter un membre'} subtitle={member ? null : 'Crée un accès pour un nouvel employé.'} size="lg">
+      <form onSubmit={submit} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Prénom"><input className="field" placeholder="Prénom" value={f.firstName} onChange={(e) => setF({ ...f, firstName: e.target.value })} /></Field>
+          <Field label="Nom"><input className="field" placeholder="Nom" value={f.lastName} onChange={(e) => setF({ ...f, lastName: e.target.value })} /></Field>
+        </div>
+        <Field label="Adresse E-mail pro"><input className="field" type="email" placeholder="employe@zeduc.com" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>
+        <div>
+          <span className="field-label">Rôle dans le restaurant</span>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[['employe', 'Staff (Cuisine)'], ['gerant', 'Gérant']].map(([k2, l]) => (
+              <label key={k2} className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm ${f.role === k2 ? 'border-gold/60 bg-[#1b1912] font-bold text-gold' : 'border-line bg-black'}`}>
+                <input type="radio" name="role" className="accent-[#cfbd97]" checked={f.role === k2} onChange={() => setF({ ...f, role: k2 })} /> {l}
+              </label>
+            ))}
+          </div>
+        </div>
+        <button className="btn-gold w-full !py-3">{member ? 'Enregistrer' : "Créer l'accès"}</button>
+        {member && (
+          <button type="button" className="btn-danger w-full" onClick={() => { if (confirm(`Supprimer le compte de ${member.name} ?`)) { removeMember(member.id); toast('Compte supprimé'); onClose() } }}><Trash2 size={14} /> Supprimer ce compte</button>
+        )}
+      </form>
+    </Modal>
+  )
+}
+
+export default function Team() {
+  const { team } = useApp()
+  const [editing, setEditing] = useState(undefined)
+  return (
+    <>
+      <PageTitle title="L'équipe du restau" subtitle="Gérez les accès de vos employés et gérants." action={<button className="btn-gold" onClick={() => setEditing(null)}><UserPlus size={15} /> Nouveau membre</button>} />
+      <div className="panel overflow-x-auto">
+        <table className="w-full min-w-[620px] text-sm">
+          <thead><tr className="border-b border-line bg-surface-2 text-muted"><th className="px-6 py-4 text-left font-normal">Employé</th><th className="px-6 py-4 text-left font-normal">Rôle</th><th className="px-6 py-4 text-left font-normal">Statut</th><th className="px-6 py-4 text-right font-normal">Actions</th></tr></thead>
+          <tbody>
+            {team.map((m) => (
+              <tr key={m.id} className="border-b border-line last:border-0">
+                <td className="px-6 py-4"><p>{m.name}</p><p className="text-xs text-muted">{m.email}</p></td>
+                <td className="px-6 py-4"><span className={`rounded px-2.5 py-1 text-xs font-bold ${m.role === 'gerant' ? 'bg-[#2a251a] text-gold' : 'bg-surface-3'}`}>{ROLE_LABEL[m.role]}</span></td>
+                <td className={`px-6 py-4 text-xs ${m.online ? 'text-ok' : 'text-ok/80'}`}>{m.presence}</td>
+                <td className="px-6 py-4 text-right"><button aria-label={`Modifier ${m.name}`} onClick={() => setEditing(m)} className="text-muted hover:text-white"><Pencil size={14} /></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <MemberModal open={editing !== undefined} member={editing} onClose={() => setEditing(undefined)} />
+    </>
+  )
+}
