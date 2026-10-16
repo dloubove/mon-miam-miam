@@ -10,9 +10,17 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->statefulApi();
+
+    $middleware->redirectGuestsTo(
+        fn (Illuminate\Http\Request $request) =>
+            $request->expectsJson() ? null : '/api/login'
+    );
+
+withExceptionHandling(function (Exceptions $exceptions): void {
+    $exceptions->report(fn (Throwable $e) => false);
+});
+
+});
