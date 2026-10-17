@@ -1,12 +1,14 @@
 import { useState } from 'react'
-import { NavLink, Outlet, Link } from 'react-router-dom'
-import { BookOpen, ChartPie, ChevronRight, Crown, Megaphone, Menu, UserCog, Users, X } from 'lucide-react'
+import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
+import { BookOpen, ChartPie, ChevronRight, Crown, LogOut, Megaphone, Menu, UserCog, Users, X } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import { Avatar } from '../components/ui.jsx'
 
 /** Sidebar « DIRECTION » partagée par l'administrateur et le gérant (accès restreint). */
 export default function DirectionLayout() {
-  const { user } = useApp()
+  const { user, logout, toast } = useApp()
+  const navigate = useNavigate()
+  const signOut = () => { navigate('/', { replace: true }); logout(); toast('Vous êtes déconnecté. À bientôt !') }
   const isAdmin = user?.role === 'administrateur'
   const [open, setOpen] = useState(false)
 
@@ -42,6 +44,11 @@ export default function DirectionLayout() {
             <Icon size={16} /> {label}
           </NavLink>
         ))}
+        <div className="mt-2 border-t border-line pt-3">
+          <button onClick={signOut} className="flex w-full cursor-pointer items-center border border-danger/30 bg-danger/5 gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-danger transition hover:bg-danger/10">
+          <LogOut size={16} /> Se déconnecter
+        </button>
+        </div>
       </nav>
       <div className="p-3">
         <Link
@@ -81,7 +88,7 @@ export default function DirectionLayout() {
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
           <span className="text-sm font-bold">DIRECTION</span>
-          <span className="w-6" />
+          <button onClick={signOut} aria-label="Se déconnecter" className="text-danger"><LogOut size={20} /></button>
         </div>
         <main className="mx-auto max-w-[1200px] px-5 py-10 lg:px-10">
           <Outlet />

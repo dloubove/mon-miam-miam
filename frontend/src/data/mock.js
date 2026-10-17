@@ -51,6 +51,11 @@ export const INITIAL_MENU = [
   { id: 2, name: 'Poulet Braisé', category: 'Plat Chaud', price: 2500, image: '/images/poulet.jpg', available: true, description: 'Poulet braisé mariné aux épices maison.' },
   { id: 3, name: 'Boulettes de viande', category: 'Plat Chaud', price: 1500, image: '/images/boulettes.jpg', available: false, description: 'Boulettes de viande en sauce crémeuse.' },
   { id: 4, name: 'Foléré', category: 'Boisson', price: 500, oldPrice: 1250, promo: true, image: '/images/folere.jpg', available: true, description: "Jus d'hibiscus frais, citron vert et épices." },
+  { id: 5, name: 'Ndolé Viande', category: 'Plat Chaud', price: 3000, image: null, available: true, description: 'Ndolé traditionnel aux arachides, accompagné de viande.' },
+  { id: 6, name: 'Burger Étudiant', category: 'Snack', price: 1500, image: null, available: true, description: 'Burger maison, frites croustillantes.' },
+  { id: 7, name: 'Pizza La Terrasse', category: 'Snack', price: 3000, image: null, available: true, description: 'Pizza généreuse cuite à la commande.' },
+  { id: 8, name: 'Cocktail Frais', category: 'Boisson', price: 1000, image: null, available: true, description: 'Cocktail de fruits sans alcool.' },
+  { id: 9, name: 'Jus de gingembre', category: 'Boisson', price: 500, image: null, available: false, description: 'Gingembre pressé, citron et miel.' },
 ]
 
 const now = Date.now()

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
 import { Avatar, Logo, Modal } from '../../components/ui.jsx'
+import UserMenu from '../../components/UserMenu.jsx'
 import { fcfa } from '../../utils/format.js'
 
 const ARRIVALS = ['Dès que c\'est prêt (env. 15min)', 'Dans 30 minutes', 'Dans 1 heure', 'Ce soir (20h00)']
@@ -40,7 +41,7 @@ export default function CartPage() {
         <div className="mx-auto flex h-[68px] max-w-[1150px] items-center justify-between px-5">
           <Logo />
           {user ? (
-            <Link to="/mon-espace" className="flex items-center gap-2.5 text-sm"><Avatar name={`${user.firstName} ${user.lastName || ''}`} />{user.firstName}</Link>
+            <UserMenu><Avatar name={`${user.firstName} ${user.lastName || ''}`} />{user.firstName}</UserMenu>
           ) : (
             <Link to="/connexion" className="text-sm hover:text-gold">Mon compte</Link>
           )}
