@@ -21,7 +21,7 @@ npm run lint
 En mode dev, des boutons « Accès démo » sont aussi présents sous le formulaire de connexion.
 
 ## Pages
-`/` accueil · `/connexion` · `/inscription` · `/panier` · `/mon-espace` · `/mon-espace/profil` · `/jeux` · `/jeux/roue` · `/jeux/devine-le-plat` ·
+`/` accueil · `/menu/plats` et `/menu/boissons` (catalogue filtrable) · `/connexion` · `/inscription` · `/panier` · `/mon-espace` · `/mon-espace/profil` · `/jeux` · `/jeux/roue` · `/jeux/devine-le-plat` ·
 `/staff` · `/staff/menu` · `/staff/reclamations` · `/staff/profil` ·
 `/direction` · `/direction/catalogue` · `/direction/equipe` (admin) · `/direction/marketing` · `/direction/profil`
 
@@ -38,3 +38,6 @@ composer le menu, traiter une réclamation, nouvel événement, nouveau membre, 
 ## Points à brancher sur le backend
 Authentification réelle (tokens), paiement Mobile Money/carte, persistance des commandes/points, envoi d'email (mot de passe oublié),
 upload des images (aujourd'hui en base64 local), remplacement des images de `public/images` par les photos d'origine.
+
+## Déconnexion rapide
+Clic sur l'avatar (étudiant, staff, panier) → menu avec « Se déconnecter » ; dans l'espace Direction, bouton rouge permanent dans la sidebar (icône dans la barre mobile).

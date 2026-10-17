@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import { Avatar, Logo } from '../components/ui.jsx'
+import UserMenu from '../components/UserMenu.jsx'
 
 const HOME_LINKS = [
   { label: 'Menu', href: '/#menu' },
@@ -48,10 +49,10 @@ export function HomeNavbar() {
         </nav>
         <div className="flex items-center gap-3 sm:gap-4">
           {user ? (
-            <Link to={user.role === 'etudiant' ? '/mon-espace' : user.role === 'employe' ? '/staff' : '/direction'} className="flex items-center gap-2.5 text-sm text-white">
+            <UserMenu>
               <Avatar name={`${user.firstName} ${user.lastName || ''}`} />
               <span className="hidden sm:inline">{user.firstName}</span>
-            </Link>
+            </UserMenu>
           ) : (
             <Link to="/connexion" className="text-sm text-white hover:text-gold">Mon compte</Link>
           )}
@@ -78,10 +79,10 @@ export function StudentNavbar({ gamesLabel = 'La Récré (Jeux)' }) {
           {inGames && <NavLink to="/jeux" className="nav-link">{gamesLabel}</NavLink>}
         </nav>
         <div className="flex items-center gap-3">
-          <Link to="/mon-espace/profil" className="flex items-center gap-2.5 text-sm font-medium text-white">
+          <UserMenu>
             <Avatar name={`${user?.firstName} ${user?.lastName || ''}`} gold={inGames} square={inGames} />
-            <span className="hidden sm:inline">{user?.firstName}</span>
-          </Link>
+            <span className="hidden font-medium sm:inline">{user?.firstName}</span>
+          </UserMenu>
           <CartButton />
         </div>
       </div>

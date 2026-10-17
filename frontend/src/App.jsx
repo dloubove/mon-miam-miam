@@ -23,12 +23,14 @@ import Dashboard from './pages/admin/Dashboard.jsx'
 import Catalogue from './pages/admin/Catalogue.jsx'
 import Team from './pages/admin/Team.jsx'
 import Marketing from './pages/admin/Marketing.jsx'
+import MenuPage from './pages/MenuPage.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 /** Route protégée : redirige vers la connexion, ou vers l'espace du rôle si accès refusé (403). */
 function RequireRole({ roles }) {
-  const { user } = useApp()
+  const { user, loggedOut } = useApp()
   const location = useLocation()
+  if (!user && loggedOut) return <Navigate to="/" replace />
   if (!user) return <Navigate to="/connexion" replace state={{ from: location.pathname }} />
   if (!roles.includes(user.role)) return <Navigate to={HOME_BY_ROLE[user.role]} replace />
   return <Outlet />
@@ -55,6 +57,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/connexion" element={<AuthPage mode="login" />} />
         <Route path="/inscription" element={<AuthPage mode="register" />} />
+        <Route path="/menu/:type" element={<MenuPage />} />
         <Route path="/panier" element={<CartPage />} />
 
         {/* Étudiant */}

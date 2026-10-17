@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import UserMenu from '../components/UserMenu.jsx'
 import { User } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 
@@ -27,7 +28,7 @@ export default function StaffLayout() {
               ))}
             </nav>
           </div>
-          <Link to="/staff/profil" className="flex items-center gap-3" aria-label="Mon profil">
+          <UserMenu>
             <span className="text-right leading-tight">
               <span className="block text-sm font-semibold">{user?.firstName}</span>
               <span className="block text-xs text-muted">{user?.shift || 'Service du midi'}</span>
@@ -35,7 +36,7 @@ export default function StaffLayout() {
             <span className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-surface-3 text-gold">
               <User size={17} />
             </span>
-          </Link>
+          </UserMenu>
         </div>
         {/* navigation mobile */}
         <nav className="flex gap-5 overflow-x-auto border-t border-line px-5 py-2.5 md:hidden">
