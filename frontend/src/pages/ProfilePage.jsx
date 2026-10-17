@@ -65,7 +65,7 @@ export default function ProfilePage({ variant }) {
     updateUser(info)
     toast('Informations enregistrées')
   }
-  const out = () => { logout(); navigate('/') }
+  const out = () => { navigate('/', { replace: true }); logout(); toast('Vous êtes déconnecté. À bientôt !') }
 
   const infoForm = ({ phoneLabel, emailLabel = 'Adresse E-mail (Identifiant)', btn = 'Enregistrer les infos', hint }) => (
     <form onSubmit={saveInfo} className="space-y-4">
@@ -157,7 +157,7 @@ export default function ProfilePage({ variant }) {
         </label>
         <div className="mt-24 flex justify-center gap-6">
           <button className="btn-gold" onClick={() => { setConfirmDelete(false); setAgree(false) }}>Annuler</button>
-          <button className="btn-outline !text-gold disabled:opacity-40" disabled={!agree} onClick={() => { deleteAccount(); navigate('/') }}>Valider</button>
+          <button className="btn-outline !text-gold disabled:opacity-40" disabled={!agree} onClick={() => { navigate('/', { replace: true }); deleteAccount() }}>Valider</button>
         </div>
       </Modal>
     </div>

@@ -40,6 +40,7 @@ export function AppProvider({ children }) {
   const [rules, setRules] = useState(INITIAL_RULES)
   const [toasts, setToasts] = useState([])
   const [lastAdded, setLastAdded] = useState(null)
+  const [loggedOut, setLoggedOut] = useState(false) // déconnexion volontaire (évite la redirection vers /connexion)
   const [registered, setRegistered] = useState(() => read('mmm_registered', []))
 
   useEffect(() => write('mmm_user', user), [user])
@@ -66,6 +67,7 @@ export function AppProvider({ children }) {
     if (found) {
       if (found.password && found.password !== password) return { ok: false, error: 'Email ou mot de passe incorrect.' }
       setUser(found)
+      setLoggedOut(false)
       return { ok: true, user: found }
     }
     return { ok: false, error: 'Email ou mot de passe incorrect.' }
@@ -85,10 +87,12 @@ export function AppProvider({ children }) {
     }
     setRegistered((r) => [...r, created])
     setUser(created)
+    setLoggedOut(false)
     return { ok: true, user: created }
   }
 
   const logout = () => {
+    setLoggedOut(true)
     setUser(null)
     setCart([])
   }
@@ -180,7 +184,7 @@ export function AppProvider({ children }) {
   const deleteEvent = (id) => setEvents((e) => e.filter((x) => x.id !== id))
 
   const value = {
-    user, login, register, logout, updateUser, deleteAccount,
+    user, loggedOut, login, register, logout, updateUser, deleteAccount,
     cart, cartLines, cartCount, cartSubtotal, addToCart, setQty, clearCart, lastAdded, setLastAdded,
     menu, toggleAvailability, setMenuSelection, saveDish, deleteDish,
     orders, placeOrder, setOrderStatus, toggleOrderItem,

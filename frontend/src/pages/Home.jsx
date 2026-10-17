@@ -1,42 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Gift, Tv } from 'lucide-react'
+import { useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
+import DishCard from '../components/DishCard.jsx'
 import { HomeNavbar, SiteFooter } from '../layouts/StudentLayout.jsx'
 import { BilliardIcon } from '../components/ui.jsx'
 import { LEADERBOARD } from '../data/mock.js'
-import { fcfa } from '../utils/format.js'
 
+const HOME_LIMIT = 3
 const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-
-function DishCard({ dish }) {
-  const { addToCart } = useApp()
-  return (
-    <article className="overflow-hidden rounded-xl border border-line bg-[#111]">
-      <div className="relative flex h-[190px] items-center justify-center bg-[#161616]">
-        <img src={dish.image} alt={dish.name} className="h-full object-contain" loading="lazy" />
-        {dish.promo && <span className="absolute right-3 top-3 rounded bg-white px-2 py-1 text-[11px] font-bold text-black">Promo</span>}
-      </div>
-      <div className="px-6 pb-5 pt-5">
-        <h3 className="min-h-[3.25rem] pl-1 text-[17px] font-bold">{dish.name}</h3>
-        <div className="mt-2 flex items-end justify-between gap-3 border-t border-line pt-4">
-          <div>
-            {dish.oldPrice ? (
-              <p className="text-[11px] text-muted line-through">{fcfa(dish.oldPrice)}</p>
-            ) : (
-              <p className="text-[11px] text-muted">Prix</p>
-            )}
-            <p className="text-[18px] font-bold text-gold">{fcfa(dish.price)}</p>
-          </div>
-          {dish.available ? (
-            <button className="btn-gold !px-4 !py-2" onClick={() => addToCart(dish)}>Ajouter</button>
-          ) : (
-            <button className="btn-dark !px-4 !py-2" disabled>Rupture</button>
-          )}
-        </div>
-      </div>
-    </article>
-  )
-}
 
 function EventCard({ ev, onAction }) {
   const Icon = ev.icon === 'billard' ? BilliardIcon : Tv
@@ -59,6 +31,8 @@ export default function Home() {
   const { menu, events, user, toast } = useApp()
   const navigate = useNavigate()
   const code = user?.referralCode || 'ZEDUC-A98X2'
+  const [tab, setTab] = useState('plats')
+  const shown = menu.filter((d) => (tab === 'boissons' ? d.category === 'Boisson' : d.category !== 'Boisson')).slice(0, HOME_LIMIT)
 
   const eventAction = (ev) => {
     if (!user) return navigate('/connexion')
@@ -106,9 +80,21 @@ export default function Home() {
         <div className="mx-auto max-w-[1360px] px-5 lg:px-16">
           <h2 className="text-3xl font-bold tracking-tight">Qu'est-ce qu'on mange aujourd'hui ?</h2>
           <p className="mt-3 text-muted">Préparé sur place, prêt à être dévoré.</p>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {menu.map((d) => <DishCard key={d.id} dish={d} />)}
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+            <div role="tablist" className="inline-flex rounded-xl border border-line bg-black p-1">
+              {[['plats', 'Plats'], ['boissons', 'Boissons']].map(([k, l]) => (
+                <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+                  className={`cursor-pointer rounded-lg px-6 py-2.5 text-sm font-bold transition ${tab === k ? 'bg-gold text-black' : 'text-white hover:text-gold'}`}>{l}</button>
+              ))}
+            </div>
+            <Link to={`/menu/${tab}`} className="rounded-xl bg-[#111] px-8 py-3 text-lg transition hover:bg-[#1a1a1a] hover:text-gold">Voir plus</Link>
           </div>
+
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {shown.map((d) => <DishCard key={d.id} dish={d} />)}
+          </div>
+          {!shown.length && <p className="py-12 text-center text-muted">Rien au menu pour le moment.</p>}
         </div>
       </section>
 
