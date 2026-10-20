@@ -44,7 +44,7 @@ function Column({ icon, title, count, children }) {
 }
 
 export default function StaffOrders() {
-  const { orders, setOrderStatus, toast } = useApp()
+  const { orders, setOrderStatus, encaisserEspeces, notifierCommande } = useApp()
   const [, tick] = useState(0)
   useEffect(() => {
     const t = setInterval(() => tick((n) => n + 1), 30000)
@@ -107,9 +107,12 @@ export default function StaffOrders() {
                 <ModeBadge mode={o.mode} />
               </div>
               <Items order={o} />
+              {o.payment === 'especes' && o.paymentStatus === 'en_attente' && <p className="mt-3 rounded-md bg-[#cfbd97]/10 px-3 py-2 text-xs text-gold">Paiement en espèces à encaisser</p>}
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <button className="btn-outline !py-2.5" onClick={() => toast(`Client de la commande #${o.id} notifié`)}><Bell size={13} fill="currentColor" /> Notifier</button>
-                <button className="btn-dark !py-2.5 font-bold" onClick={() => setOrderStatus(o.id, 'cloture')}>Clôturer</button>
+                <button className="btn-outline !py-2.5" onClick={() => notifierCommande(o.id)}><Bell size={13} fill="currentColor" /> Notifier</button>
+                {o.payment === 'especes' && o.paymentStatus === 'en_attente'
+                  ? <button className="btn-gold !py-2.5 font-bold" onClick={() => encaisserEspeces(o.id)}>Encaisser les espèces</button>
+                  : <button className="btn-dark !py-2.5 font-bold" onClick={() => setOrderStatus(o.id, 'cloture')}>Clôturer</button>}
               </div>
             </article>
           ))}

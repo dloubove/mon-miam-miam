@@ -6,6 +6,7 @@ import { Field, Modal, PasswordInput } from '../../components/ui.jsx'
 import { useApp } from '../../context/AppContext.jsx'
 import { DELIVERY_PLACES, DEMO_USERS, HOME_BY_ROLE } from '../../data/mock.js'
 import { isEmail, isStrongPassword } from '../../utils/format.js'
+import { apiRequest } from '../../services/api.js'
 
 function Tabs({ mode, onChange }) {
   const base = 'flex-1 rounded-lg py-2.5 text-xs font-semibold transition cursor-pointer'
@@ -25,17 +26,35 @@ function LoginForm({ onSwitch }) {
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
+  const [needsVerification, setNeedsVerification] = useState(false)
+  const [notice, setNotice] = useState(() => new URLSearchParams(window.location.search).get('email_verifie') === '1' ? 'Adresse email confirmée. Tu peux maintenant te connecter.' : '')
   const [forgot, setForgot] = useState(false)
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
+    setError('')
+    setNotice('')
+    setNeedsVerification(false)
     if (!isEmail(email) || !password) return setError('Renseignez un email valide et votre mot de passe.')
-    const res = login(email, password)
-    if (!res.ok) return setError(res.error)
+    const res = await login(email, password, remember)
+    if (!res.ok) {
+      setError(res.error)
+      setNeedsVerification(res.code === 'email_non_verifie')
+      return
+    }
     navigate(location.state?.from || HOME_BY_ROLE[res.user.role], { replace: true })
   }
-  const demo = (u) => {
-    const res = login(u.email, 'Demo1234')
+  const resendVerification = async () => {
+    try {
+      const result = await apiRequest('/auth/renvoyer-verification-email', { method: 'POST', body: { email } })
+      setNotice(result.message)
+      setError('')
+    } catch (sendError) {
+      setError(sendError.message)
+    }
+  }
+  const demo = async (u) => {
+    const res = await login(u.email, 'Demo1234')
     if (res.ok) navigate(HOME_BY_ROLE[u.role])
   }
 
@@ -60,6 +79,8 @@ function LoginForm({ onSwitch }) {
           Se souvenir de moi
         </label>
         {error && <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
+        {notice && <p className="rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success" role="status">{notice}</p>}
+        {needsVerification && <button type="button" onClick={resendVerification} className="text-left text-sm font-semibold text-gold hover:underline">Renvoyer le lien de confirmation</button>}
         <button className="btn-gold w-full !py-3.5 text-xs font-bold uppercase tracking-wider shadow-[0_0_24px_rgba(207,189,151,.25)]">
           Se connecter <ArrowRight size={15} />
         </button>
@@ -89,11 +110,16 @@ function LoginForm({ onSwitch }) {
 function ForgotForm({ onDone }) {
   const { toast } = useApp()
   const [email, setEmail] = useState('')
-  const send = (e) => {
+  const send = async (e) => {
     e.preventDefault()
     if (!isEmail(email)) return toast('Email invalide', 'error')
-    toast('Lien de récupération envoyé (si le compte existe).')
-    onDone()
+    try {
+      const result = await apiRequest('/auth/mot-de-passe-oublie', { method: 'POST', body: { email } })
+      toast(result.message)
+      onDone()
+    } catch (error) {
+      toast(error.message, 'error')
+    }
   }
   return (
     <form onSubmit={send} className="space-y-4">
@@ -105,12 +131,12 @@ function ForgotForm({ onDone }) {
 
 function RegisterForm() {
   const { register } = useApp()
-  const navigate = useNavigate()
   const [f, setF] = useState({ name: '', phone: '', email: '', place: '', password: '', sponsorCode: '' })
   const [errors, setErrors] = useState({})
+  const [notice, setNotice] = useState('')
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }))
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     const err = {}
     if (f.name.trim().length < 2) err.name = 'Indiquez votre nom.'
@@ -120,13 +146,23 @@ function RegisterForm() {
     if (!isStrongPassword(f.password)) err.password = '8 caractères minimum, 1 majuscule et 1 chiffre.'
     setErrors(err)
     if (Object.keys(err).length) return
-    const res = register(f)
+    const res = await register(f)
     if (!res.ok) return setErrors({ email: res.error })
-    navigate('/mon-espace')
+    setNotice(res.message || `Compte créé. Consulte ${res.email} pour confirmer ton adresse email.`)
+  }
+
+  const resendVerification = async () => {
+    try {
+      const result = await apiRequest('/auth/renvoyer-verification-email', { method: 'POST', body: { email: f.email } })
+      setNotice(result.message)
+    } catch (error) {
+      setErrors((current) => ({ ...current, email: error.message }))
+    }
   }
 
   return (
     <form onSubmit={submit} className="space-y-5" noValidate>
+      {notice && <div className="space-y-2 rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success" role="status"><p>{notice}</p><button type="button" onClick={resendVerification} className="font-semibold underline">Renvoyer le lien de confirmation</button></div>}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Comment tu t'appelles ?" error={errors.name}><input className="field" placeholder="Marc Dupont" value={f.name} onChange={set('name')} /></Field>
         <Field label="Ton numéro WhatsApp" error={errors.phone}><input className="field" placeholder="699 00 00 00" value={f.phone} onChange={set('phone')} inputMode="tel" /></Field>
@@ -166,7 +202,7 @@ export default function AuthPage({ mode: initial }) {
           </>
         ) : (
           <>
-            <h2 className="text-xl font-bold">Bienvenue à la Terrasse</h2>
+            <h2 className="text-xl font-bold">Bienvenue au Lotus</h2>
             <p className="mt-2 text-xs text-muted">Connecte-toi ou rejoins la famille ZeDuc.</p>
           </>
         )}

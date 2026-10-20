@@ -96,6 +96,9 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
+            // Fuseau de la session PostgreSQL : sans cela, les dates créées par la base (DEFAULT now())
+            // suivraient le fuseau du serveur et pourraient décaler de plusieurs heures celles écrites par Laravel.
+            'timezone' => env('APP_TIMEZONE', 'UTC'),
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
