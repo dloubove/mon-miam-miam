@@ -22,18 +22,21 @@ function Card({ icon: Icon, title, subtitle, badge, children }) {
 }
 
 function SecurityForm({ confirmLabel = 'Confirmer le nouveau mot de passe', newPlaceholder = '8 caractères minimum', buttonLabel = 'Mettre à jour le mot de passe' }) {
-  const { user, updateUser, toast } = useApp()
+  const { changePassword, toast } = useApp()
   const [cur, setCur] = useState('')
   const [n1, setN1] = useState('')
   const [n2, setN2] = useState('')
   const [err, setErr] = useState('')
-  const submit = (e) => {
+  const [busy, setBusy] = useState(false)
+  const submit = async (e) => {
     e.preventDefault()
-    if (user.password && cur !== user.password) return setErr('Mot de passe actuel incorrect.')
     if (!cur) return setErr('Saisissez votre mot de passe actuel.')
     if (!isStrongPassword(n1)) return setErr('8 caractères minimum, 1 majuscule et 1 chiffre.')
     if (n1 !== n2) return setErr('Les deux mots de passe ne correspondent pas.')
-    updateUser({ password: n1 })
+    setBusy(true)
+    const result = await changePassword(cur, n1)
+    setBusy(false)
+    if (!result.ok) return setErr(result.error)
     setCur(''); setN1(''); setN2(''); setErr('')
     toast('Mot de passe mis à jour')
   }
@@ -45,7 +48,7 @@ function SecurityForm({ confirmLabel = 'Confirmer le nouveau mot de passe', newP
         <Field label={confirmLabel}><input type="password" className="field" value={n2} onChange={(e) => setN2(e.target.value)} placeholder="Répéter le mot de passe" autoComplete="new-password" /></Field>
       </div>
       {err && <p className="text-sm text-danger" role="alert">{err}</p>}
-      <button className="btn-gold">{buttonLabel}</button>
+      <button className="btn-gold" disabled={busy}>{busy ? 'Enregistrement…' : buttonLabel}</button>
     </form>
   )
 }
@@ -57,12 +60,15 @@ export default function ProfilePage({ variant }) {
   const [addr, setAddr] = useState({ place: user.place || DELIVERY_PLACES[0], residence: user.residence || '' })
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [agree, setAgree] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
   const set = (k) => (e) => setInfo((s) => ({ ...s, [k]: e.target.value }))
 
-  const saveInfo = (e) => {
+  const saveInfo = async (e) => {
     e.preventDefault()
     if (!info.firstName.trim() || !isEmail(info.email)) return toast('Vérifiez le prénom et l\'email', 'error')
-    updateUser(info)
+    const result = await updateUser(info)
+    if (!result.ok) return toast(result.error, 'error')
     toast('Informations enregistrées')
   }
   const out = () => { navigate('/', { replace: true }); logout(); toast('Vous êtes déconnecté. À bientôt !') }
@@ -119,7 +125,7 @@ export default function ProfilePage({ variant }) {
 
       {!staff && (
         <Card icon={MapPin} title="Préférences de livraison" subtitle="On pré-remplira ton panier avec ces informations.">
-          <form onSubmit={(e) => { e.preventDefault(); updateUser(addr); toast('Adresse mise à jour') }} className="space-y-4">
+          <form onSubmit={async (e) => { e.preventDefault(); const result = await updateUser(addr); result.ok ? toast('Adresse mise à jour') : toast(result.error, 'error') }} className="space-y-4">
             <Field label="Où manges-tu le plus souvent ?">
               <select className="field" value={addr.place} onChange={(e) => setAddr((a) => ({ ...a, place: e.target.value }))}>
                 {DELIVERY_PLACES.map((p) => <option key={p}>{p}</option>)}
@@ -152,12 +158,16 @@ export default function ProfilePage({ variant }) {
 
       <Modal open={confirmDelete} onClose={() => { setConfirmDelete(false); setAgree(false) }} tone="danger" title="Supprimer Compte">
         <p className="text-sm font-bold">Êtes-vous sûr de supprimer votre compte (vous risquez de perdre {user.points || 0} points) :</p>
+        <Field label="Mot de passe actuel">
+          <input type="password" className="field mt-3" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} autoComplete="current-password" />
+        </Field>
+        {deleteError && <p className="mt-3 text-sm text-danger" role="alert">{deleteError}</p>}
         <label className="mt-5 flex cursor-pointer items-center gap-3 text-sm text-[#bbb]">
           <input type="checkbox" className="h-4 w-4 accent-[#cfbd97]" checked={agree} onChange={(e) => setAgree(e.target.checked)} /> Oui, je veux supprimer mon compte
         </label>
         <div className="mt-24 flex justify-center gap-6">
-          <button className="btn-gold" onClick={() => { setConfirmDelete(false); setAgree(false) }}>Annuler</button>
-          <button className="btn-outline !text-gold disabled:opacity-40" disabled={!agree} onClick={() => { navigate('/', { replace: true }); deleteAccount() }}>Valider</button>
+          <button className="btn-gold" onClick={() => { setConfirmDelete(false); setAgree(false); setDeleteError(''); setDeletePassword('') }}>Annuler</button>
+          <button className="btn-outline !text-gold disabled:opacity-40" disabled={!agree || !deletePassword} onClick={async () => { const result = await deleteAccount(deletePassword); if (!result.ok) return setDeleteError(result.error); setConfirmDelete(false); navigate('/', { replace: true }) }}>Valider</button>
         </div>
       </Modal>
     </div>
