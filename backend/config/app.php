@@ -65,7 +65,13 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
+
+    /*
+    | Adresse du frontend React : sert à construire les liens envoyés par email
+    | (ex. réinitialisation du mot de passe) et à autoriser les appels CORS.
+    */
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
 
     /*
     |--------------------------------------------------------------------------

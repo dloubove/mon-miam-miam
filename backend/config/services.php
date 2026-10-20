@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    'mobile_money' => [
+        'mode' => env('MOBILE_MONEY_MODE', 'simulation'),
+        'url' => env('MOBILE_MONEY_AGGREGATOR_URL'),
+        'key' => env('MOBILE_MONEY_AGGREGATOR_KEY'),
+        'webhook_secret' => env('MOBILE_MONEY_WEBHOOK_SECRET'),
+        'currency' => env('MOBILE_MONEY_CURRENCY', 'XAF'),
+    ],
+
+    'cinetpay' => [
+        'api_key' => env('CINETPAY_API_KEY'),
+        'site_id' => env('CINETPAY_SITE_ID'),
+        'secret_key' => env('CINETPAY_SECRET_KEY'),
+    ],
+
 ];

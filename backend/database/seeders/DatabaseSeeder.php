@@ -2,24 +2,23 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(ReferenceSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Les comptes et plats de démonstration ne sont jamais créés en production.
+        if (! app()->environment('production')) {
+            $this->call(DemoSeeder::class);
+        }
+
+        // Les commandes de démonstration (tableau du personnel, historique) n'existent qu'en développement local :
+        // pas en production, et pas pendant les tests (qui créent leurs propres commandes).
+        if (app()->environment('local')) {
+            $this->call(DemoCommandesSeeder::class);
+        }
     }
 }

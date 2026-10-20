@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
@@ -6,7 +6,7 @@ import { Avatar, Logo, Modal } from '../../components/ui.jsx'
 import UserMenu from '../../components/UserMenu.jsx'
 import { fcfa } from '../../utils/format.js'
 
-const ARRIVALS = ['Dès que c\'est prêt (env. 15min)', 'Dans 30 minutes', 'Dans 1 heure', 'Ce soir (20h00)']
+const ARRIVALS = ['12:00', '12:30', '13:00', '18:00', '19:00']
 
 export default function CartPage() {
   const { user, cartLines, cartSubtotal, setQty, placeOrder, rules, toast } = useApp()
@@ -15,8 +15,13 @@ export default function CartPage() {
   const [arrival, setArrival] = useState(ARRIVALS[0])
   const [note, setNote] = useState('')
   const [usePoints, setUsePoints] = useState(false)
-  const [payment, setPayment] = useState('momo')
+  const [payment, setPayment] = useState('mtn_momo')
   const [done, setDone] = useState(false)
+  const [paymentPending, setPaymentPending] = useState(false)
+  const [cashPayment, setCashPayment] = useState(false)
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [phone, setPhone] = useState(user?.phone || '')
+  useEffect(() => { if (user?.phone) setPhone(user.phone) }, [user?.phone])
 
   const points = user?.points || 0
   const units = Math.min(Math.floor(points / rules.pointsForDiscount), Math.floor(cartSubtotal / rules.discountFcfa))
@@ -24,15 +29,31 @@ export default function CartPage() {
   const fees = 0
   const total = Math.max(0, cartSubtotal - discount + fees)
 
-  const pay = () => {
+  const submitOrder = async () => {
     if (!user) {
       toast('Connectez-vous pour valider votre commande', 'error')
       return navigate('/connexion', { state: { from: '/panier' } })
     }
     if (user.role !== 'etudiant') return toast('Seuls les étudiants peuvent commander', 'error')
     if (!cartLines.length) return
-    placeOrder({ mode, arrival, note, usePoints, payment })
-    setDone(true)
+    try {
+      const result = await placeOrder({ mode, arrival, note, usePoints, payment, telephone: phone })
+      if (result.redirectUrl) {
+        window.location.assign(result.redirectUrl)
+        return
+      }
+      setPaymentPending(result.pending)
+      setCashPayment(result.cash)
+      setShowPaymentForm(false)
+      setDone(true)
+    } catch (error) {
+      toast(error.message, 'error')
+    }
+  }
+
+  const pay = () => {
+    if (payment === 'especes') return submitOrder()
+    setShowPaymentForm(true)
   }
 
   return (
@@ -90,7 +111,7 @@ export default function CartPage() {
                 </div>
                 <label className="field-label mt-5">{mode === 'sur_place' ? 'À quelle heure tu arrives ?' : 'Livraison souhaitée'}</label>
                 <select className="field" value={arrival} onChange={(e) => setArrival(e.target.value)}>
-                  {ARRIVALS.map((a) => <option key={a}>{a}</option>)}
+                  {ARRIVALS.map((a) => <option key={a} value={a}>{a}</option>)}
                 </select>
                 <label className="field-label mt-5">Un commentaire pour le chef ? (Facultatif)</label>
                 <input className="field" placeholder="Ex: Beaucoup de sauce s'il vous plaît" value={note} onChange={(e) => setNote(e.target.value)} />
@@ -117,14 +138,14 @@ export default function CartPage() {
               </div>
               <p className="mb-3 mt-6 text-sm text-muted">Comment tu paies ?</p>
               <div className="space-y-3">
-                {[['momo', 'Mobile Money (Orange / MTN)'], ['card', 'Carte Bancaire']].map(([k, l]) => (
+                {[['orange_money', 'Orange Money'], ['mtn_momo', 'MTN MoMo'], ['especes', 'Espèces à la remise']].map(([k, l]) => (
                   <label key={k} className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition ${payment === k ? 'border-gold bg-[#1a1812]' : 'border-line bg-black'}`}>
                     <input type="radio" name="pay" className="accent-[#cfbd97]" checked={payment === k} onChange={() => setPayment(k)} /> {l}
                   </label>
                 ))}
               </div>
               <button className="btn-gold mt-6 w-full !py-3.5" onClick={pay}>Payer et Confirmer</button>
-              <p className="mt-4 flex items-center justify-center gap-2 text-xs text-muted"><Lock size={12} /> Paiement sécurisé via agrégateur</p>
+              <p className="mt-4 flex items-center justify-center gap-2 text-xs text-muted"><Lock size={12} /> {payment === 'especes' ? 'Paiement confirmé par le personnel à la remise' : 'Paiement mobile sécurisé'}</p>
             </section>
           </div>
         )}
@@ -134,9 +155,22 @@ export default function CartPage() {
         <div className="flex min-h-[260px] flex-col items-center justify-between gap-8 py-6">
           <p className="flex flex-1 items-center gap-4 text-2xl text-gold">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 13l5 5L20 6" /></svg>
-            Ta commande a été validée !
+            {cashPayment ? 'Commande enregistrée : paiement en espèces à la remise.' : paymentPending ? 'Paiement lancé, confirmation en attente…' : 'Ta commande a été validée !'}
           </p>
           <button className="btn-gold px-10" onClick={() => { setDone(false); navigate('/mon-espace') }}>Voir ma commande</button>
+        </div>
+      </Modal>
+
+      <Modal open={showPaymentForm} onClose={() => setShowPaymentForm(false)} size="md">
+        <div className="space-y-5 py-3">
+          <h2 className="text-xl font-bold">Paiement Mobile Money</h2>
+          <p className="text-sm text-muted">Indique le numéro utilisé pour payer. La page de paiement sécurisée te proposera Orange Money ou MTN MoMo selon les moyens disponibles.</p>
+          <label className="field-label">Numéro de téléphone</label>
+          <input className="field" type="tel" autoComplete="tel" placeholder="Ex. 6XX XX XX XX" value={phone} onChange={(event) => setPhone(event.target.value)} />
+          <div className="flex gap-3">
+            <button className="btn-outline flex-1" onClick={() => setShowPaymentForm(false)}>Retour</button>
+            <button className="btn-gold flex-1" disabled={phone.trim().length < 8} onClick={submitOrder}>Continuer vers le paiement</button>
+          </div>
         </div>
       </Modal>
     </div>
