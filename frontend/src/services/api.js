@@ -86,11 +86,47 @@ export function mapArticle(article) {
     id: article.id,
     name: article.nom,
     description: article.description || '',
-    category: label === 'boisson' ? 'Boisson' : label === 'snack' ? 'Snack' : 'Plat Chaud',
+    category: label === 'boisson' ? 'Boisson' : label === 'snack' ? 'Snack' : label === 'dessert' ? 'Dessert' : 'Plat Chaud',
+    categoryId: article.categorie?.id,
     price: article.prix,
     oldPrice: article.prix_normal,
     promo: Boolean(article.promotion),
     image: article.image_url,
     available: article.disponible,
+    inDailyMenu: article.dans_menu ?? true,
+  }
+}
+
+export function mapEvenement(event) {
+  const date = new Date(event.date_debut)
+  const badge = Number.isNaN(date.getTime()) ? '' : date.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
+  return {
+    id: event.id,
+    title: event.titre,
+    heading: event.titre,
+    text: event.description || '',
+    hook: badge,
+    badge,
+    icon: 'tv',
+    cta: 'Je participe',
+    active: Boolean(event.actif),
+    poster: event.affiche_url || null,
+    start: event.date_debut,
+    end: event.date_fin,
+    points: event.points_recompense || 0,
+  }
+}
+
+export function mapPromotion(promotion) {
+  return {
+    id: promotion.id,
+    title: promotion.titre,
+    description: promotion.description || '',
+    rate: Number(promotion.taux),
+    start: promotion.date_debut,
+    end: promotion.date_fin,
+    status: promotion.statut,
+    poster: promotion.affiche_url || null,
+    articles: (promotion.articles || []).map((article) => article.id),
   }
 }

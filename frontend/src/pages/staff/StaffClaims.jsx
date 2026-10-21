@@ -11,7 +11,7 @@ const BADGE = {
 const LABEL = { nouveau: 'Nouveau', en_cours: 'En cours', classe: 'Classé' }
 
 function TreatModal({ claim, onClose }) {
-  const { updateClaim, toast, user, rules } = useApp()
+  const { answerClaim, decideClaim, toast, user, rules } = useApp()
   const [action, setAction] = useState('points')
   const [pts, setPts] = useState(15)
   const [msg, setMsg] = useState('')
@@ -21,12 +21,12 @@ function TreatModal({ claim, onClose }) {
     setAction('points'); setPts(15)
     setMsg("Désolé pour le désagrément ! L'équipe s'excuse. Voici 15 points offerts sur ton compte pour ta prochaine commande.")
   }
-  const finish = (status) => {
-    const note = status === 'classe'
-      ? (action === 'points' ? `Résolu : ${pts} points de fidélité offerts en compensation.` : 'Résolu : message d\'excuse envoyé.')
-      : `${user.firstName} a mis la demande en attente.`
-    updateClaim(claim.id, { status, note })
-    toast(status === 'classe' ? 'Ticket clôturé' : 'Ticket mis en attente')
+  const finish = async (decision) => {
+    const result = user.role === 'employe'
+      ? await answerClaim(claim.id, msg)
+      : await decideClaim(claim.id, decision, msg, decision === 'validee' ? pts : 0)
+    if (!result?.ok) return toast(result?.error || 'La réclamation n’a pas été mise à jour.', 'error')
+    toast(user.role === 'employe' ? 'Réponse enregistrée. En attente de la décision du gérant.' : 'Décision enregistrée.')
     onClose()
   }
   const chooseAction = (a) => {
@@ -38,9 +38,9 @@ function TreatModal({ claim, onClose }) {
   return (
     <Modal open={!!claim} onClose={onClose} title="Traiter la demande" size="lg">
       <p className="-mt-3 text-sm text-muted">Action pour la commande <strong className="text-white">#{claim?.orderId}</strong> de <strong className="text-white">{claim?.customer}</strong>.</p>
-      <p className="mb-3 mt-5 text-sm text-muted">Quelle action entreprendre ?</p>
+      {user.role !== 'employe' && <><p className="mb-3 mt-5 text-sm text-muted">Décision de la réclamation</p>
       <div className="space-y-3">
-        {[['simple', "Envoyer un message d'excuse simple"], ['points', 'Offrir des points de fidélité (Dédommagement)']].map(([k, l]) => (
+        {[['simple', 'Valider sans points'], ['points', 'Valider et attribuer des points']].map(([k, l]) => (
           <label key={k} className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3.5 text-sm ${action === k ? 'border-gold/60 bg-[#1b1912]' : 'border-line bg-black'}`}>
             <input type="radio" name="act" className="accent-[#cfbd97]" checked={action === k} onChange={() => chooseAction(k)} /> {l}
           </label>
@@ -54,12 +54,13 @@ function TreatModal({ claim, onClose }) {
             <span className="inline-flex items-center gap-2 rounded-md border border-line bg-surface-3 px-3 py-2 text-xs text-gold"><Gift size={12} /> {rules.pointsForDiscount} pts = {rules.discountFcfa} FCFA de réduction</span>
           </div>
         </>
-      )}
+      )}</>}
       <p className="mb-2 mt-5 text-sm text-muted">Message pour l'étudiant</p>
       <textarea className="field h-24 resize-none" value={msg} onChange={(e) => setMsg(e.target.value)} />
-      <div className="mt-6 flex gap-4">
-        <button className="btn-outline" onClick={() => finish('en_cours')}>Mettre en attente</button>
-        <button className="btn-gold" onClick={() => finish('classe')}>Clôturer le ticket</button>
+      <div className="mt-6 flex flex-wrap gap-4">
+        {user.role === 'employe'
+          ? <button className="btn-gold" onClick={() => finish('repondue')}>Envoyer la réponse au gérant</button>
+          : <><button className="btn-outline" onClick={() => finish('rejetee')}>Rejeter</button><button className="btn-gold" onClick={() => finish('validee')}>Valider la réclamation</button></>}
       </div>
     </Modal>
   )
@@ -72,7 +73,7 @@ export default function StaffClaims() {
 
   const unread = claims.filter((c) => c.status === 'nouveau').length
   const waiting = claims.filter((c) => c.status === 'en_cours').length
-  const solved = 13 + claims.filter((c) => c.status === 'classe').length
+  const solved = claims.filter((c) => c.status === 'classe').length
   const list = filter === 'unread' ? claims.filter((c) => c.status === 'nouveau') : claims
 
   return (

@@ -5,7 +5,7 @@ import { Modal, Toggle } from '../../components/ui.jsx'
 import { fcfa } from '../../utils/format.js'
 
 function Row({ dish }) {
-  const { toggleAvailability } = useApp()
+  const { toggleAvailability, toast } = useApp()
   const off = !dish.available
   return (
     <li className={`flex items-center gap-4 rounded-lg border bg-surface p-3.5 ${off ? 'border-danger/25' : 'border-line'}`}>
@@ -19,7 +19,7 @@ function Row({ dish }) {
         <p className="text-xs text-muted">{fcfa(dish.price)}</p>
       </div>
       <span className={`text-[11px] font-extrabold uppercase tracking-wide ${off ? 'text-danger' : 'text-ok'}`}>{off ? 'Rupture' : 'Disponible'}</span>
-      <Toggle checked={dish.available} onChange={() => toggleAvailability(dish.id)} label={`Disponibilité ${dish.name}`} />
+      <Toggle checked={dish.available} onChange={async () => { const result = await toggleAvailability(dish.id); if (result?.ok) toast('Disponibilité mise à jour') }} label={`Disponibilité ${dish.name}`} />
     </li>
   )
 }
@@ -34,9 +34,9 @@ export default function StaffMenu() {
   const hot = filtered.filter((d) => d.category === 'Plat Chaud')
   const others = filtered.filter((d) => d.category !== 'Plat Chaud')
 
-  const openModal = () => { setSel(menu.filter((d) => d.available).map((d) => d.id)); setOpen(true) }
+  const openModal = () => { setSel(menu.filter((d) => d.inDailyMenu).map((d) => d.id)); setOpen(true) }
   const toggleSel = (id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))
-  const apply = () => { setMenuSelection(sel); setOpen(false); toast('Menu du jour mis à jour') }
+  const apply = async () => { const result = await setMenuSelection(sel); if (result?.ok) { setOpen(false); toast('Menu du jour mis à jour') } }
 
   return (
     <main className="mx-auto max-w-[800px] px-5 py-10">
