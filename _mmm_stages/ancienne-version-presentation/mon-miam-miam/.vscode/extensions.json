@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "bmewburn.vscode-intelephense-client",
+    "onecentlin.laravel-blade",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconfig",
+    "mikestead.dotenv",
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github"
+  ]
+}
