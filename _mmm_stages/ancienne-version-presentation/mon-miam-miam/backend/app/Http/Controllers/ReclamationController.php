@@ -48,7 +48,7 @@ class ReclamationController extends Controller
             'reponse_proposee' => $data['reponse'], 'date_reponse' => now(),
             'id_repondant' => $request->user()->id_utilisateur, 'statut_reclamation' => 'repondue',
         ]);
-        return $reclamation->fresh();
+        return $reclamation->fresh(['etudiant.utilisateur']);
     }
 
     public function decider(Request $request, Reclamation $reclamation, PointsService $points): Reclamation
