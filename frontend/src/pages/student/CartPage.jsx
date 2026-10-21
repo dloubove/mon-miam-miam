@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Minus, Plus, ShoppingCart } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
@@ -13,6 +13,7 @@ export default function CartPage() {
   const navigate = useNavigate()
   const [mode, setMode] = useState('sur_place')
   const [arrival, setArrival] = useState(ARRIVALS[0])
+  const [address, setAddress] = useState(user?.place || '')
   const [note, setNote] = useState('')
   const [usePoints, setUsePoints] = useState(false)
   const [payment, setPayment] = useState('mtn_momo')
@@ -21,8 +22,6 @@ export default function CartPage() {
   const [cashPayment, setCashPayment] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [phone, setPhone] = useState(user?.phone || '')
-  useEffect(() => { if (user?.phone) setPhone(user.phone) }, [user?.phone])
-
   const points = user?.points || 0
   const units = Math.min(Math.floor(points / rules.pointsForDiscount), Math.floor(cartSubtotal / rules.discountFcfa))
   const discount = usePoints ? units * rules.discountFcfa : 0
@@ -37,7 +36,8 @@ export default function CartPage() {
     if (user.role !== 'etudiant') return toast('Seuls les étudiants peuvent commander', 'error')
     if (!cartLines.length) return
     try {
-      const result = await placeOrder({ mode, arrival, note, usePoints, payment, telephone: phone })
+      if (mode === 'livraison' && !address.trim()) return toast('Indiquez l’adresse où livrer la commande.', 'error')
+      const result = await placeOrder({ mode, arrival, address, note, usePoints, payment, telephone: phone })
       if (result.redirectUrl) {
         window.location.assign(result.redirectUrl)
         return
@@ -109,10 +109,15 @@ export default function CartPage() {
                     <button key={k} onClick={() => setMode(k)} className={`rounded-lg px-4 py-3.5 text-sm font-medium transition ${mode === k ? 'bg-gold text-black' : 'border border-line bg-black text-white hover:border-gold/60'}`}>{l}</button>
                   ))}
                 </div>
-                <label className="field-label mt-5">{mode === 'sur_place' ? 'À quelle heure tu arrives ?' : 'Livraison souhaitée'}</label>
-                <select className="field" value={arrival} onChange={(e) => setArrival(e.target.value)}>
-                  {ARRIVALS.map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
+                {mode === 'sur_place' ? <>
+                  <label className="field-label mt-5">À quelle heure tu arrives ?</label>
+                  <select className="field" value={arrival} onChange={(e) => setArrival(e.target.value)}>
+                    {ARRIVALS.map((a) => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </> : <>
+                  <label className="field-label mt-5">Adresse ou lieu précis de livraison</label>
+                  <input className="field" placeholder="Campus, bâtiment, salle ou repère" value={address} onChange={(e) => setAddress(e.target.value)} maxLength={255} />
+                </>}
                 <label className="field-label mt-5">Un commentaire pour le chef ? (Facultatif)</label>
                 <input className="field" placeholder="Ex: Beaucoup de sauce s'il vous plaît" value={note} onChange={(e) => setNote(e.target.value)} />
               </section>

@@ -11,7 +11,6 @@ use App\Services\AuthService;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 
 /**
@@ -24,43 +23,16 @@ class AuthController extends Controller
         private readonly AuthService $auth,
     ) {}
 
-    /** POST /api/auth/inscription : crée un compte étudiant et demande la vérification de son email. */
+    /** POST /api/auth/inscription : crée directement un compte étudiant utilisable. */
     public function inscription(InscriptionRequest $request): JsonResponse
     {
         // validated() ne contient QUE les champs déclarés dans rules() : pas de données parasites.
         $utilisateur = $this->auth->inscrire($request->validated());
 
         return response()->json([
-            'message' => 'Compte créé. Consultez votre email pour confirmer votre adresse avant de vous connecter.',
-            'verification_requise' => true,
+            'message' => 'Compte créé. Vous pouvez maintenant vous connecter.',
             'email' => $utilisateur->email,
         ], 201);
-    }
-
-    /** GET /api/auth/verification-email/{id}/{hash} : confirme une adresse via un lien signé. */
-    public function verifierEmail(Request $request, int $id, string $hash): RedirectResponse
-    {
-        $utilisateur = Utilisateur::findOrFail($id);
-        if (! hash_equals(sha1($utilisateur->email), $hash)) {
-            abort(403, 'Lien de vérification invalide.');
-        }
-
-        if (! $utilisateur->email_verified_at) {
-            $utilisateur->forceFill(['email_verified_at' => now()])->save();
-        }
-
-        return redirect()->away(rtrim(config('app.frontend_url'), '/').'/connexion?email_verifie=1');
-    }
-
-    /** POST /api/auth/renvoyer-verification-email : renvoie le lien sans révéler l'existence du compte. */
-    public function renvoyerLienVerification(Request $request): JsonResponse
-    {
-        $donnees = $request->validate(['email' => ['required', 'email']]);
-        $this->auth->renvoyerVerification(mb_strtolower(trim($donnees['email'])));
-
-        return response()->json([
-            'message' => 'Si un compte non confirmé existe pour cette adresse, un nouveau lien vient de lui être envoyé.',
-        ], 202);
     }
 
     /** POST /api/auth/connexion : échange email + mot de passe contre un jeton. */

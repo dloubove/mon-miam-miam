@@ -1,11 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Gift, Tv } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import DishCard from '../components/DishCard.jsx'
 import { HomeNavbar, SiteFooter } from '../layouts/StudentLayout.jsx'
 import { BilliardIcon } from '../components/ui.jsx'
-import { LEADERBOARD } from '../data/mock.js'
+import { apiRequest } from '../services/api.js'
 
 const HOME_LIMIT = 3
 const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
@@ -28,17 +28,27 @@ function EventCard({ ev, onAction }) {
 }
 
 export default function Home() {
-  const { menu, events, user, toast } = useApp()
+  const { menu, events, user, toast, participateEvent, refreshProfile } = useApp()
   const navigate = useNavigate()
-  const code = user?.referralCode || 'ZEDUC-A98X2'
+  const [leaderboard, setLeaderboard] = useState([])
+  useEffect(() => {
+    let actif = true
+    apiRequest('/classement').then((rows) => { if (actif) setLeaderboard(rows || []) }).catch(() => {})
+    return () => { actif = false }
+  }, [])
+  const code = user?.referralCode || ''
   const [tab, setTab] = useState('plats')
   const shown = menu.filter((d) => (tab === 'boissons' ? d.category === 'Boisson' : d.category !== 'Boisson')).slice(0, HOME_LIMIT)
 
-  const eventAction = (ev) => {
+  const eventAction = async (ev) => {
     if (!user) return navigate('/connexion')
-    toast(`Demande enregistrée : ${ev.title}`)
+    const result = await participateEvent(ev.id)
+    if (result?.error) return toast(result.error, 'error')
+    if (result?.points_gagnes) await refreshProfile()
+    toast(`Participation enregistrée${result?.points_gagnes ? ` : +${result.points_gagnes} points` : ''}`)
   }
   const copy = async () => {
+    if (!code) return navigate('/connexion')
     try {
       await navigator.clipboard.writeText(code)
       toast('Code copié !')
@@ -147,8 +157,8 @@ export default function Home() {
             <h3 className="text-xl font-bold">Votre code parrainage</h3>
             <p className="mt-3 text-sm text-muted">Donnez ce code à un ami pour qu'il le saisisse à l'inscription.</p>
             <div className="mt-7 flex items-center justify-between rounded-lg border border-line bg-black p-2 pl-6">
-              <span className="font-bold tracking-wide text-gold">{code}</span>
-              <button className="btn-dark !py-2.5" onClick={copy}>Copier</button>
+              <span className="font-bold tracking-wide text-gold">{code || 'Connectez-vous pour obtenir votre code'}</span>
+              <button className="btn-dark !py-2.5" onClick={copy}>{code ? 'Copier' : 'Connexion'}</button>
             </div>
             <Link to={user ? '/mon-espace' : '/connexion'} className="mt-7 inline-block text-sm text-gold hover:underline">
               Voir mes points dans mon espace
@@ -176,23 +186,23 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody>
-                    {LEADERBOARD.map((r, i) => (
-                      <tr key={r.rank} className={`border-b border-line last:border-0 ${i === 0 ? 'bg-[#181818]' : 'bg-[#111]'}`}>
-                        <td className={`px-6 py-4 ${i === 0 ? 'font-bold text-gold' : 'text-muted'}`}>{r.rank}</td>
+                    {leaderboard.map((r, i) => (
+                      <tr key={r.id} className={`border-b border-line last:border-0 ${i === 0 ? 'bg-[#181818]' : 'bg-[#111]'}`}>
+                        <td className={`px-6 py-4 ${i === 0 ? 'font-bold text-gold' : 'text-muted'}`}>{i + 1}</td>
                         <td className="px-3 py-4">{r.name}</td>
                         <td className="px-3 py-4 text-center text-muted">{r.orders}</td>
                         <td className={`px-6 py-4 text-right ${i === 0 ? 'font-bold text-gold' : ''}`}>{r.points}</td>
                       </tr>
                     ))}
+                    {!leaderboard.length && <tr><td colSpan="4" className="px-6 py-8 text-center text-muted">Aucune commande terminée ce mois-ci.</td></tr>}
                   </tbody>
                 </table>
               </div>
             </div>
             <div className="flex flex-col items-center justify-center rounded-xl border border-line bg-[#111] p-8 text-center">
-              <span className="grid h-20 w-20 place-items-center rounded-full bg-gold text-3xl font-bold text-black">D</span>
-              <p className="mt-5 text-xl font-bold">Dan L</p>
-              <p className="mt-1 text-sm text-gold">Le boss du mois</p>
-              <p className="mt-6 text-sm italic text-muted">"Gagne un menu gratuit au prochain passage !"</p>
+              <span className="grid h-20 w-20 place-items-center rounded-full bg-gold text-3xl font-bold text-black">{leaderboard[0]?.name?.[0] || '?'}</span>
+              <p className="mt-5 text-xl font-bold">{leaderboard[0]?.name || 'Pas encore de classement'}</p>
+              <p className="mt-1 text-sm text-gold">{leaderboard.length ? 'En tête ce mois-ci' : 'Le classement apparaîtra après les premières commandes'}</p>
             </div>
           </div>
         </div>

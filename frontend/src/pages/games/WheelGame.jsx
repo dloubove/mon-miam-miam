@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Star } from 'lucide-react'
 import GameShell from './GameShell.jsx'
 import { Modal } from '../../components/ui.jsx'
 import { useApp } from '../../context/AppContext.jsx'
-import { WHEEL_PRIZES } from '../../data/mock.js'
+import { apiRequest } from '../../services/api.js'
+
+const WHEEL_PRIZES = ['Perdu', '500 FCFA de réduction', 'Boisson offerte', '1 point', '100 FCFA de réduction', '1 point']
 
 const N = WHEEL_PRIZES.length
 const SEG = 360 / N
@@ -17,17 +19,37 @@ function slicePath(i) {
 }
 
 export default function WheelGame() {
-  const { user, updateUser, toast } = useApp()
-  const key = `mmm_wheel_${user.id}`
-  const today = new Date().toDateString()
-  const [played, setPlayed] = useState(() => localStorage.getItem(key) === today)
+  const { refreshProfile, toast } = useApp()
+  const [gameId, setGameId] = useState(null)
+  const [played, setPlayed] = useState(false)
   const [rotation, setRotation] = useState(0)
   const [spinning, setSpinning] = useState(false)
   const [prize, setPrize] = useState(null)
 
-  const spin = () => {
+  useEffect(() => {
+    let actif = true
+    const load = async () => {
+      try {
+        const games = await apiRequest('/mini-jeux')
+        const game = (games || []).find((item) => item.nom_mini_jeu === 'Roue de la chance')
+        if (!game) throw new Error('La roue n’est pas activée dans la base.')
+        if (!actif) return
+        setGameId(game.id_mini_jeu)
+        const status = await apiRequest(`/mini-jeux/${game.id_mini_jeu}/statut`)
+        if (actif) setPlayed(Boolean(status.joue_aujourdhui))
+      } catch (error) { if (actif) toast(error.message, 'error') }
+    }
+    load()
+    return () => { actif = false }
+  }, [toast])
+
+  const spin = async () => {
     if (spinning || played) return
-    const idx = Math.floor(Math.random() * N)
+    if (!gameId) return toast('La roue est encore en cours de chargement.', 'error')
+    let result
+    try { result = await apiRequest(`/mini-jeux/${gameId}/roue`, { method: 'POST' }) }
+    catch (error) { if (error.status === 409) setPlayed(true); return toast(error.message, 'error') }
+    const idx = Math.max(0, WHEEL_PRIZES.indexOf(result.recompense))
     // le segment idx doit finir sous le pointeur (en haut)
     const target = 360 * 6 + (360 - (idx * SEG + SEG / 2))
     setSpinning(true)
@@ -35,14 +57,12 @@ export default function WheelGame() {
     setTimeout(() => {
       setSpinning(false)
       setPlayed(true)
-      try { localStorage.setItem(key, today) } catch { /* ignore */ }
-      const p = WHEEL_PRIZES[idx]
-      if (p === '+1 Point') updateUser({ points: (user.points || 0) + 1 })
-      setPrize(p)
+      setPrize(result.recompense)
+      refreshProfile()
     }, 4200)
   }
 
-  const msg = prize === 'Perdu' ? 'Pas de chance aujourd\'hui… reviens demain !' : prize === '+1 Point' ? 'Tu gagnes +1 point de fidélité !' : prize === 'Boisson' ? 'Une boisson offerte ! Présente-toi au comptoir.' : `Tu gagnes ${prize} de réduction !`
+  const msg = prize === 'Perdu' ? 'Pas de chance aujourd\'hui… reviens demain !' : prize === '1 point' ? 'Tu gagnes +1 point de fidélité, ajouté à ton compte !' : prize === 'Boisson offerte' ? 'Une boisson offerte ! Présente-toi au comptoir.' : `Tu gagnes ${prize} ! Présente ce résultat au comptoir.`
 
   return (
     <GameShell>

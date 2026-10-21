@@ -18,7 +18,7 @@
                     "Authentification"
                 ],
                 "summary": "Créer un compte étudiant",
-                "description": "Crée le compte puis envoie un lien de confirmation valable 24 heures. Aucun jeton Sanctum n’est remis avant confirmation.",
+                "description": "Crée un compte immédiatement utilisable, sans confirmation de l’adresse email.",
                 "operationId": "b14cee8fff29c70d113cabc834895abc",
                 "requestBody": {
                     "required": true,
@@ -39,77 +39,10 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Compte créé ; confirmation email requise"
+                        "description": "Compte créé"
                     },
                     "422": {
                         "description": "Données invalides"
-                    }
-                }
-            }
-        },
-        "/auth/verification-email/{id}/{hash}": {
-            "get": {
-                "tags": [
-                    "Authentification"
-                ],
-                "summary": "Confirmer une adresse email",
-                "description": "Lien signé et temporaire envoyé après inscription. Après confirmation, redirige vers le frontend.",
-                "operationId": "a75241b314dabf4561536f6c817e796c",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "hash",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "302": {
-                        "description": "Adresse confirmée, redirection vers la connexion"
-                    },
-                    "403": {
-                        "description": "Lien invalide ou expiré"
-                    }
-                }
-            }
-        },
-        "/auth/renvoyer-verification-email": {
-            "post": {
-                "tags": [
-                    "Authentification"
-                ],
-                "summary": "Renvoyer le lien de confirmation",
-                "description": "Répond sans révéler si le compte existe ou est déjà confirmé.",
-                "operationId": "af0118c3a2738260812cbbcdc4ba0326",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object"
-                            },
-                            "example": {
-                                "email": "dan@example.cm"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "202": {
-                        "description": "Demande traitée"
-                    },
-                    "422": {
-                        "description": "Adresse email invalide"
                     }
                 }
             }
@@ -120,7 +53,7 @@
                     "Authentification"
                 ],
                 "summary": "Ouvrir une session API",
-                "description": "Retourne utilisateur, jeton Bearer Sanctum et date d’expiration (1 jour, ou 30 jours si se_souvenir=true). L’adresse doit avoir été confirmée après inscription.",
+                "description": "Retourne utilisateur, jeton Bearer Sanctum et date d’expiration (1 jour, ou 30 jours si se_souvenir=true). Une notification email est envoyée après la connexion si le service mail est configuré; l’adresse n’a pas à être confirmée.",
                 "operationId": "63febe3348209578af3c72962803494f",
                 "requestBody": {
                     "required": true,
@@ -140,9 +73,6 @@
                 "responses": {
                     "200": {
                         "description": "Connexion réussie"
-                    },
-                    "403": {
-                        "description": "Adresse email non confirmée"
                     },
                     "422": {
                         "description": "Identifiants incorrects"

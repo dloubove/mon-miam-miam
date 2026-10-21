@@ -5,7 +5,7 @@ import { useApp } from '../../context/AppContext.jsx'
 import { CATEGORIES } from '../../data/mock.js'
 import { fcfa } from '../../utils/format.js'
 
-const EMPTY = { name: '', category: 'Plat Chaud', price: '', description: '', image: null }
+const EMPTY = { name: '', category: 'Plat Chaud', price: '', description: '', image: null, imageFile: null }
 
 function DishModal({ dish, open, onClose }) {
   const { saveDish, toast } = useApp()
@@ -19,16 +19,18 @@ function DishModal({ dish, open, onClose }) {
     if (!file) return
     if (file.size > 2 * 1024 * 1024) return toast('Image trop lourde (2 Mo max)', 'error')
     const r = new FileReader()
-    r.onload = () => setF((s) => ({ ...s, image: r.result }))
+    r.onload = () => setF((s) => ({ ...s, image: r.result, imageFile: file }))
     r.readAsDataURL(file)
   }
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault()
     const price = Number(f.price)
     if (!f.name.trim() || !price || price <= 0) return toast('Nom et prix valides requis', 'error')
-    saveDish({ ...f, price })
-    toast(dish ? 'Plat modifié' : 'Plat ajouté au catalogue')
-    onClose()
+    const result = await saveDish({ ...f, price })
+    if (result?.ok) {
+      toast(dish ? 'Plat modifié' : 'Plat ajouté au catalogue')
+      onClose()
+    }
   }
   return (
     <Modal open={open} onClose={onClose} title={dish ? 'Modifier le plat' : 'Ajouter un nouveau plat'} size="lg">
@@ -73,7 +75,7 @@ export default function Catalogue() {
             <div className="mt-4 flex gap-3 border-t border-line pt-4">
               <button className="btn-dark flex-1 !py-2 !text-xs" onClick={() => setEditing(d)}>{admin ? 'Modifier' : 'Modifier détails'}</button>
               {admin ? (
-                <button aria-label={`Supprimer ${d.name}`} className="grid h-9 w-10 place-items-center rounded-lg border border-line bg-black text-danger hover:border-danger/50" onClick={() => { if (confirm(`Supprimer « ${d.name} » du catalogue ?`)) { deleteDish(d.id); toast('Plat supprimé') } }}><Trash2 size={14} /></button>
+                <button aria-label={`Supprimer ${d.name}`} className="grid h-9 w-10 place-items-center rounded-lg border border-line bg-black text-danger hover:border-danger/50" onClick={async () => { if (confirm(`Supprimer « ${d.name} » du catalogue ?`)) { const result = await deleteDish(d.id); if (result?.ok) toast('Plat supprimé') } }}><Trash2 size={14} /></button>
               ) : (
                 <span title="Suppression réservée à l'administrateur" className="grid h-9 w-10 place-items-center rounded-lg border border-line bg-black text-muted"><Lock size={13} /></span>
               )}

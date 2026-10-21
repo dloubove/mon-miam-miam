@@ -47,9 +47,15 @@ class ReferenceSeeder extends Seeder
             ]);
         }
 
-        DB::table('mini_jeu')->insertOrIgnore([
-            ['nom_mini_jeu' => 'Quiz du jour', 'description_mini_jeu' => 'Questions courtes sur la cuisine et le campus.', 'points_maximum' => 20],
-            ['nom_mini_jeu' => 'Memo repas', 'description_mini_jeu' => 'Retrouver les paires d’articles.', 'points_maximum' => 10],
-        ]);
+        foreach ([
+            ['Quiz du jour', 'Questions courtes sur la cuisine et le campus.', 2],
+            ['Roue de la chance', 'Une tentative quotidienne pour gagner une récompense.', 1],
+            ['Devine le plat', 'Une question quotidienne sur les plats du restaurant.', 2],
+        ] as [$nom, $description, $points]) {
+            DB::table('mini_jeu')->updateOrInsert(
+                ['nom_mini_jeu' => $nom],
+                ['description_mini_jeu' => $description, 'points_maximum' => $points],
+            );
+        }
     }
 }

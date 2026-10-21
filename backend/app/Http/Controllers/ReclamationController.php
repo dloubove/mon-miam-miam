@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Exceptions\RegleMetierException;
 use App\Models\Commande;
 use App\Models\Reclamation;
+use App\Services\PointsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReclamationController extends Controller
 {
@@ -46,20 +48,31 @@ class ReclamationController extends Controller
             'reponse_proposee' => $data['reponse'], 'date_reponse' => now(),
             'id_repondant' => $request->user()->id_utilisateur, 'statut_reclamation' => 'repondue',
         ]);
-        return $reclamation->fresh();
+        return $reclamation->fresh(['etudiant.utilisateur']);
     }
 
-    public function decider(Request $request, Reclamation $reclamation): Reclamation
+    public function decider(Request $request, Reclamation $reclamation, PointsService $points): Reclamation
     {
-        if ($reclamation->statut_reclamation !== 'repondue') {
-            throw new RegleMetierException('La réclamation doit d’abord recevoir une réponse du personnel.', 409);
-        }
-        $data = $request->validate(['decision' => ['required', 'in:validee,rejetee'], 'motif' => ['required', 'string', 'min:3', 'max:2000']]);
-        $reclamation->update([
-            'decision_gerant' => $data['decision'], 'motif_decision' => $data['motif'],
-            'date_decision' => now(), 'id_decideur' => $request->user()->id_utilisateur,
-            'statut_reclamation' => $data['decision'],
+        $data = $request->validate([
+            'decision' => ['required', 'in:validee,rejetee'],
+            'motif' => ['required', 'string', 'min:3', 'max:2000'],
+            'points' => ['sometimes', 'integer', 'min:0', 'max:1000'],
         ]);
-        return $reclamation->fresh();
+        return DB::transaction(function () use ($request, $reclamation, $data, $points) {
+            $reclamation = Reclamation::whereKey($reclamation->id_reclamation)->lockForUpdate()->firstOrFail();
+            if ($reclamation->statut_reclamation !== 'repondue') {
+                throw new RegleMetierException('La réclamation doit d’abord recevoir une réponse du personnel.', 409);
+            }
+            $reclamation->update([
+                'decision_gerant' => $data['decision'], 'motif_decision' => $data['motif'],
+                'date_decision' => now(), 'id_decideur' => $request->user()->id_utilisateur,
+                'statut_reclamation' => $data['decision'],
+            ]);
+            $recompense = (int) ($data['points'] ?? 0);
+            if ($data['decision'] === 'validee' && $recompense > 0) {
+                $points->enregistrer($reclamation->id_etudiant, 'ajustement', $recompense);
+            }
+            return $reclamation->fresh(['etudiant.utilisateur']);
+        });
     }
 }

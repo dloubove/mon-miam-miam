@@ -6,6 +6,8 @@ use App\Models\Etudiant;
 use App\Models\Utilisateur;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NotificationConnexionMail;
 use Tests\Concerns\GereLesConnexions;
 use Tests\TestCase;
 
@@ -32,10 +34,10 @@ class InscriptionTest extends TestCase
     {
         $reponse = $this->postJson('/api/auth/inscription', $this->formulaire());
 
-        // 201 = compte créé. La connexion attend la confirmation de l'adresse email.
+        // 201 = compte créé, utilisable sans étape de vérification email.
         $reponse->assertCreated()
             ->assertJsonPath('email', 'marc.dupont@ucac-icam.com')
-            ->assertJsonPath('verification_requise', true)
+            ->assertJsonPath('message', 'Compte créé. Vous pouvez maintenant vous connecter.')
             ->assertJsonMissingPath('jeton');
 
         // Le mot de passe ne doit JAMAIS apparaître dans la réponse.
@@ -60,21 +62,17 @@ class InscriptionTest extends TestCase
         $this->assertTrue(password_verify('Motdepasse1', $hash));
     }
 
-    public function test_la_confirmation_email_est_requise_avant_la_connexion(): void
+    public function test_un_compte_non_verifie_peut_se_connecter_et_recoit_une_notification(): void
     {
+        Mail::fake();
         $this->postJson('/api/auth/inscription', $this->formulaire())->assertCreated();
 
         $this->postJson('/api/auth/connexion', ['email' => 'marc.dupont@ucac-icam.com', 'mot_de_passe' => 'Motdepasse1'])
-            ->assertForbidden()
-            ->assertJsonPath('code', 'email_non_verifie');
-
-        Utilisateur::where('email', 'marc.dupont@ucac-icam.com')->update(['email_verified_at' => now()]);
-        $jeton = $this->postJson('/api/auth/connexion', ['email' => 'marc.dupont@ucac-icam.com', 'mot_de_passe' => 'Motdepasse1'])
-            ->assertOk()->json('jeton');
-
-        $this->withToken($jeton)->getJson('/api/moi')
             ->assertOk()
-            ->assertJsonPath('nom', 'Marc Dupont');
+            ->assertJsonStructure(['jeton', 'utilisateur']);
+
+        $this->assertNull(Utilisateur::where('email', 'marc.dupont@ucac-icam.com')->value('email_verified_at'));
+        Mail::assertSent(NotificationConnexionMail::class, fn ($mail) => $mail->hasTo('marc.dupont@ucac-icam.com'));
     }
 
     public function test_un_code_parrain_valide_cree_le_lien_de_parrainage(): void

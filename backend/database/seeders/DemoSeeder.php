@@ -58,12 +58,12 @@ class DemoSeeder extends Seeder
             ['Poisson Braisé', 3500, 'plat', 'Poisson braisé, bâtons de manioc et sauce pimentée.', true, 'poisson.jpg'],
             ['Poulet Braisé', 2500, 'plat', 'Poulet braisé mariné aux épices maison.', true, 'poulet.jpg'],
             ['Boulettes de viande', 1500, 'plat', 'Boulettes de viande en sauce crémeuse.', false, 'boulettes.jpg'],
-            ['Ndolé Viande', 3000, 'plat', 'Ndolé traditionnel aux arachides, accompagné de viande.', true, null],
-            ['Burger Étudiant', 1500, 'snack', 'Burger maison, frites croustillantes.', true, null],
-            ['Pizza La Terrasse', 3000, 'snack', 'Pizza généreuse cuite à la commande.', true, null],
+            ['Ndolé Viande', 3000, 'plat', 'Ndolé traditionnel aux arachides, accompagné de viande.', true, 'ndole.jpg'],
+            ['Burger Étudiant', 1500, 'snack', 'Burger maison, frites croustillantes.', true, 'burger.jpg'],
+            ['Pizza La Terrasse', 3000, 'snack', 'Pizza généreuse cuite à la commande.', true, 'pizza.jpg'],
             ['Foléré', 1250, 'boisson', "Jus d'hibiscus frais, citron vert et épices.", true, 'folere.jpg'],
-            ['Cocktail Frais', 1000, 'boisson', 'Cocktail de fruits sans alcool.', true, null],
-            ['Jus de gingembre', 500, 'boisson', 'Gingembre pressé, citron et miel.', false, null],
+            ['Cocktail Frais', 1000, 'boisson', 'Cocktail de fruits sans alcool.', true, 'cocktail.jpg'],
+            ['Jus de gingembre', 500, 'boisson', 'Gingembre pressé, citron et miel.', false, 'jus-orange.jpg'],
         ];
         $ids = [];
         foreach ($articles as [$nom, $prix, $categorie, $description, $disponible, $photo]) {

@@ -21,13 +21,13 @@ class MiniJeuTest extends TestCase
         $this->app['auth']->forgetGuards();
         $this->enTantQue('etudiant@ucac-icam.com')->postJson("/api/mini-jeux/{$jeu}/parties", [
             'session_id' => $question['session_id'], 'reponse' => $reponse,
-        ])->assertOk()->assertJsonPath('points_gagnes', 20);
+        ])->assertOk()->assertJsonPath('points_gagnes', 2);
         $this->app['auth']->forgetGuards();
         $this->enTantQue('etudiant@ucac-icam.com')->postJson("/api/mini-jeux/{$jeu}/parties", [
             'session_id' => $question['session_id'], 'reponse' => $reponse,
         ])->assertStatus(409);
 
-        $this->assertSame(65, (int) DB::table('etudiant')->where('code_parrainage', 'ZEDUC-DAN01')->value('solde_points'));
-        $this->assertDatabaseHas('mouvement_points', ['type_mouvement' => 'gain_mini_jeu', 'nombre_points' => 20]);
+        $this->assertSame(47, (int) DB::table('etudiant')->where('code_parrainage', 'ZEDUC-DAN01')->value('solde_points'));
+        $this->assertDatabaseHas('mouvement_points', ['type_mouvement' => 'gain_mini_jeu', 'nombre_points' => 2]);
     }
 }
