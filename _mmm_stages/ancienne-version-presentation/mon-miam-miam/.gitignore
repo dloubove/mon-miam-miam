@@ -1,0 +1,33 @@
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Éditeurs (on garde les réglages partagés de VS Code)
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Secrets : ne jamais versionner
+.env
+.env.*
+!.env.example
+
+# Dépendances et builds
+node_modules/
+vendor/
+dist/
+build/
+.vercel/
+
+# Tests et caches
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+*.log
+
+# Fichiers temporaires
+*.tmp
+*.bak
+~$*

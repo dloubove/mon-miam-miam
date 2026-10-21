@@ -1,0 +1,12 @@
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "git.autofetch": true,
+  "git.pruneOnFetch": true,
+  "[php]": { "editor.tabSize": 4 },
+  "[blade]": { "editor.tabSize": 4 },
+  "files.exclude": { "**/.DS_Store": true }
+}
