@@ -1,9 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import {
-  INITIAL_CLAIMS, INITIAL_EVENTS, INITIAL_MENU, INITIAL_ORDERS,
-  INITIAL_RULES, INITIAL_TEAM,
+  INITIAL_RULES,
 } from '../data/mock.js'
-import { apiRequest, clearApiSession, getApiToken, mapArticle, mapUtilisateur, readApiUser, saveApiSession, saveApiUser } from '../services/api.js'
+import { apiRequest, clearApiSession, getApiToken, mapArticle, mapEvenement, mapPromotion, mapUtilisateur, readApiUser, saveApiSession, saveApiUser } from '../services/api.js'
 
 const AppContext = createContext(null)
 
@@ -26,8 +25,10 @@ const write = (key, value) => {
 const mapStaffOrder = (order, status) => ({
   id: order.id,
   customer: order.client?.nom || 'Client',
+  client: order.client,
   mode: order.mode_service,
   arrival: order.heure_arrivee,
+  address: order.adresse_livraison,
   note: order.commentaire,
   payment: order.paiement?.mode_paiement,
   paymentStatus: order.paiement?.statut_paiement,
@@ -37,28 +38,63 @@ const mapStaffOrder = (order, status) => ({
   items: (order.lignes || []).map((line) => ({ name: line.nom, qty: line.quantite, done: false })),
 })
 
+const mapStudentOrder = (order, userId) => ({
+  id: order.id,
+  userId,
+  mode: order.mode_service,
+  arrival: order.heure_arrivee,
+  address: order.adresse_livraison,
+  note: order.commentaire,
+  total: order.total,
+  status: ({ panier: 'a_preparer', en_attente: 'a_preparer', en_preparation: 'en_cuisine', prete: 'pret', servie: 'terminee', livree: 'terminee', annulee: 'annulee' })[order.statut] || order.statut,
+  createdAt: Date.parse(order.date_commande),
+  items: (order.lignes || []).map((line) => ({ name: line.nom, qty: line.quantite, done: false })),
+})
+
+const mapClaim = (claim) => ({
+  id: claim.id_reclamation,
+  orderId: claim.id_commande,
+  customer: claim.etudiant?.utilisateur?.nom || 'Vous',
+  when: claim.date_reclamation ? new Date(claim.date_reclamation).toLocaleString('fr-FR') : '',
+  motif: claim.objet,
+  message: claim.description_reclamation,
+  status: ({ ouverte: 'nouveau', repondue: 'en_cours', validee: 'classe', rejetee: 'classe' })[claim.statut_reclamation] || 'nouveau',
+  response: claim.reponse_proposee,
+  decision: claim.decision_gerant,
+  note: claim.motif_decision || claim.reponse_proposee || '',
+})
+
 /**
- * Store global de l'application (état local de démonstration).
- * Chaque bloc est isolé pour être remplacé facilement par des appels à l'API Laravel
- * (VITE_API_URL) : auth, menu, commandes, réclamations, équipe, événements, règles.
+ * État d'interface partagé. Les données métier sont chargées et modifiées via l'API Laravel ;
+ * seuls le panier temporaire et le consentement aux cookies restent dans le navigateur.
  */
 export function AppProvider({ children }) {
-  const [user, setUser] = useState(() => readApiUser() || read('mmm_user', null))
+  const [user, setUser] = useState(() => readApiUser())
   const [cart, setCart] = useState(() => read('mmm_cart', []))
   const [cookieConsent, setCookieConsent] = useState(() => read('mmm_cookies', null))
-  const [menu, setMenu] = useState(INITIAL_MENU)
-  const [orders, setOrders] = useState(INITIAL_ORDERS)
-  const [claims, setClaims] = useState(INITIAL_CLAIMS)
-  const [team, setTeam] = useState(INITIAL_TEAM)
-  const [events, setEvents] = useState(INITIAL_EVENTS)
+  const [menu, setMenu] = useState([])
+  const [orders, setOrders] = useState([])
+  const [claims, setClaims] = useState([])
+  const [pointsHistory, setPointsHistory] = useState([])
+  const [referrals, setReferrals] = useState([])
+  const [team, setTeam] = useState([])
+  const [events, setEvents] = useState([])
+  const [promotions, setPromotions] = useState([])
   const [rules, setRules] = useState(INITIAL_RULES)
   const [toasts, setToasts] = useState([])
   const [lastAdded, setLastAdded] = useState(null)
   const [loggedOut, setLoggedOut] = useState(false) // déconnexion volontaire (évite la redirection vers /connexion)
 
+  /* ---------- Toasts ---------- */
+  const toast = useCallback((message, type = 'success') => {
+    const id = Date.now() + Math.random()
+    setToasts((t) => [...t, { id, message, type }])
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200)
+  }, [])
+
   useEffect(() => {
     if (getApiToken()) saveApiUser(user)
-    else write('mmm_user', user)
+    else localStorage.removeItem('mmm_user')
   }, [user])
   useEffect(() => write('mmm_cart', cart), [cart])
 
@@ -74,17 +110,55 @@ export function AppProvider({ children }) {
     }
     apiRequest('/menu-du-jour').then((reponse) => {
       const articles = reponse?.data || []
-      if (actif && articles.length) setMenu(articles.map(mapArticle))
+      if (actif) setMenu(articles.map(mapArticle))
     }).catch(() => {})
     return () => { actif = false }
   }, [])
 
-  /* ---------- Toasts ---------- */
-  const toast = useCallback((message, type = 'success') => {
-    const id = Date.now() + Math.random()
-    setToasts((t) => [...t, { id, message, type }])
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3200)
-  }, [])
+  useEffect(() => {
+    let actif = true
+    apiRequest('/regles-fidelite').then((params) => {
+      if (actif) setRules((current) => ({ ...current,
+        fcfaPerBlock: 1000,
+        pointsPerBlock: params.points_par_1000_fcfa ?? current.pointsPerBlock,
+        pointsForDiscount: params.points_par_tranche_reduction ?? current.pointsForDiscount,
+        discountFcfa: params.fcfa_pour_15_points ?? current.discountFcfa,
+        minPoints: params.seuil_min_points_utilisation ?? current.minPoints,
+        expiryMonths: params.duree_validite_points_mois ?? current.expiryMonths,
+      }))
+    }).catch((error) => { if (actif) toast(error.message, 'error') })
+    apiRequest('/evenements').then((rows) => { if (actif) setEvents((rows || []).map(mapEvenement)) }).catch(() => {})
+    return () => { actif = false }
+  }, [toast])
+
+  // Le catalogue complet et le menu quotidien sont différents : le catalogue sert à
+  // créer/modifier des plats, tandis que le menu public ne contient que la sélection du jour.
+  useEffect(() => {
+    let actif = true
+    if (!getApiToken()) return () => { actif = false }
+    const role = user?.role
+    const url = ['employe', 'gerant', 'administrateur'].includes(role)
+      ? '/staff/menu'
+      : role === 'etudiant' ? '/menu-du-jour' : null
+    if (!url) return () => { actif = false }
+    apiRequest(url).then((response) => {
+      const rows = response?.articles || response?.data || []
+      if (actif) setMenu(rows.map(mapArticle))
+    }).catch((error) => { if (actif) toast(error.message, 'error') })
+    return () => { actif = false }
+  }, [user?.role, toast])
+
+  useEffect(() => {
+    if (!getApiToken() || !['gerant', 'administrateur'].includes(user?.role)) return
+    let actif = true
+    Promise.all([apiRequest('/gestion/evenements'), apiRequest('/gestion/promotions')]).then(([rows, promoRows]) => {
+      if (actif) {
+        setEvents((rows || []).map(mapEvenement))
+        setPromotions((promoRows?.data || []).map(mapPromotion))
+      }
+    }).catch((error) => { if (actif) toast(error.message, 'error') })
+    return () => { actif = false }
+  }, [user?.role, toast])
 
   const chargerCommandesPersonnel = useCallback(async () => {
     const resultat = await apiRequest('/staff/commandes')
@@ -97,8 +171,84 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     if (!getApiToken() || !['employe', 'gerant', 'administrateur'].includes(user?.role)) return
-    chargerCommandesPersonnel().catch((error) => toast(error.message, 'error'))
+    let actif = true
+    const premierChargement = window.setTimeout(() => {
+      chargerCommandesPersonnel().catch((error) => { if (actif) toast(error.message, 'error') })
+    }, 0)
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') chargerCommandesPersonnel().catch(() => {})
+    }, 15000)
+    return () => { actif = false; window.clearTimeout(premierChargement); window.clearInterval(timer) }
   }, [user?.role, chargerCommandesPersonnel, toast])
+
+  useEffect(() => {
+    if (!getApiToken() || user?.role !== 'etudiant') return
+    let actif = true
+    const refresh = () => apiRequest('/commandes?par_page=50').then((response) => {
+      if (actif) setOrders((response.data || []).map((order) => mapStudentOrder(order, user.id)))
+    })
+    const initial = window.setTimeout(() => refresh().catch((error) => { if (actif) toast(error.message, 'error') }), 0)
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') refresh().catch(() => {})
+    }, 15000)
+    return () => { actif = false; window.clearTimeout(initial); window.clearInterval(timer) }
+  }, [user?.id, user?.points, user?.role, toast])
+
+  useEffect(() => {
+    if (!getApiToken() || user?.role !== 'etudiant') return
+    let actif = true
+    Promise.all([apiRequest('/fidelite/historique'), apiRequest('/parrainages')])
+      .then(([history, referred]) => {
+        if (!actif) return
+        setPointsHistory(history.data || [])
+        setReferrals(referred || [])
+      })
+      .catch((error) => { if (actif) toast(error.message, 'error') })
+    return () => { actif = false }
+  }, [user?.id, user?.points, user?.role, toast])
+
+  useEffect(() => {
+    if (!getApiToken() || !['gerant', 'administrateur'].includes(user?.role)) return
+    let actif = true
+    apiRequest('/gestion/equipe').then((rows) => {
+      if (actif) setTeam((rows || []).map((person) => ({
+        id: person.id, name: person.name, email: person.email, phone: person.telephone,
+        role: person.role, presence: person.status === 'actif' ? 'Compte actif' : 'Compte désactivé', online: false,
+      })))
+    }).catch((error) => { if (actif) toast(error.message, 'error') })
+    return () => { actif = false }
+  }, [user?.role, toast])
+
+  useEffect(() => {
+    if (!getApiToken() || user?.role !== 'administrateur') return
+    let actif = true
+    apiRequest('/administration/parametres-fidelite').then((rows) => {
+      if (!actif) return
+      const params = Object.fromEntries((rows || []).map((row) => [row.cle_parametre, Number(row.valeur_parametre)]))
+      setRules((current) => ({
+        ...current,
+        fcfaPerBlock: 1000,
+        pointsPerBlock: params.points_par_1000_fcfa ?? current.pointsPerBlock,
+        pointsForDiscount: params.points_par_tranche_reduction ?? current.pointsForDiscount,
+        discountFcfa: params.fcfa_pour_15_points ?? current.discountFcfa,
+        minPoints: params.seuil_min_points_utilisation ?? current.minPoints,
+        expiryMonths: params.duree_validite_points_mois ?? current.expiryMonths,
+      }))
+    }).catch((error) => { if (actif) toast(error.message, 'error') })
+    return () => { actif = false }
+  }, [user?.role, toast])
+
+  useEffect(() => {
+    if (!getApiToken()) return
+    const role = user?.role
+    const route = role === 'etudiant' ? '/reclamations' : ['employe', 'gerant', 'administrateur'].includes(role) ? '/staff/reclamations' : null
+    if (!route) return
+    let actif = true
+    apiRequest(route).then((response) => {
+      if (actif) setClaims((response.data || response || []).map(mapClaim))
+    }).catch((error) => { if (actif) toast(error.message, 'error') })
+    return () => { actif = false }
+  }, [user?.role, toast])
 
   /* ---------- Cookies (RGPD) ---------- */
   const answerCookies = (accepted) => {
@@ -134,7 +284,6 @@ export function AppProvider({ children }) {
       })
       return {
         ok: true,
-        verificationRequired: Boolean(reponse.verification_requise),
         email: reponse.email,
         message: reponse.message,
       }
@@ -176,6 +325,15 @@ export function AppProvider({ children }) {
     } catch (error) {
       return { ok: false, error: error.message }
     }
+  }
+
+  const refreshProfile = async () => {
+    try {
+      const profile = await apiRequest('/moi')
+      const account = mapUtilisateur(profile)
+      setUser(account)
+      return account
+    } catch (error) { toast(error.message, 'error'); return null }
   }
 
   const changePassword = async (current, next) => {
@@ -230,14 +388,14 @@ export function AppProvider({ children }) {
   const cartSubtotal = cartLines.reduce((s, l) => s + l.qty * l.dish.price, 0)
 
   /* ---------- Commandes ---------- */
-  const placeOrder = async ({ mode, arrival, note, usePoints, payment, telephone }) => {
+  const placeOrder = async ({ mode, arrival, address, note, usePoints, payment, telephone }) => {
     const commande = await apiRequest('/commandes', {
       method: 'POST',
       body: {
         lignes: cartLines.map((line) => ({ article_id: line.id, quantite: line.qty })),
         mode_service: mode,
         heure_arrivee: mode === 'sur_place' ? arrival : null,
-        adresse_livraison: mode === 'livraison' ? user?.place : null,
+        adresse_livraison: mode === 'livraison' ? address?.trim() || user?.place : null,
         commentaire: note || null,
         utiliser_points: usePoints,
       },
@@ -313,42 +471,187 @@ export function AppProvider({ children }) {
     setOrders((o) => o.map((x) => (x.id === id ? { ...x, items: x.items.map((it, i) => (i === idx ? { ...it, done: !it.done } : it)) } : x)))
 
   /* ---------- Menu / catalogue ---------- */
-  const toggleAvailability = (id) => setMenu((m) => m.map((d) => (d.id === id ? { ...d, available: !d.available } : d)))
-  const setMenuSelection = (ids) => setMenu((m) => m.map((d) => ({ ...d, available: ids.includes(d.id) })))
-  const saveDish = (dish) =>
-    setMenu((m) => (dish.id ? m.map((d) => (d.id === dish.id ? { ...d, ...dish } : d)) : [...m, { ...dish, id: Math.max(0, ...m.map((d) => d.id)) + 1, available: true }]))
-  const deleteDish = (id) => setMenu((m) => m.filter((d) => d.id !== id))
+  const toggleAvailability = async (id) => {
+    const article = menu.find((item) => item.id === id)
+    if (!article) return { ok: false, error: 'Article introuvable.' }
+    try {
+      const updated = await apiRequest(`/staff/articles/${id}/disponibilite`, {
+        method: 'PATCH', body: { disponible: !article.available },
+      })
+      setMenu((items) => items.map((item) => item.id === id ? mapArticle(updated) : item))
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+  const setMenuSelection = async (ids) => {
+    try {
+      const response = await apiRequest('/staff/menu-du-jour', { method: 'PUT', body: { articles: ids } })
+      setMenu((response.articles || []).map(mapArticle))
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+  const saveDish = async (dish) => {
+    try {
+      const categories = await apiRequest('/categories')
+      const wantedCategory = ({ 'Plat Chaud': 'plat' })[dish.category] || dish.category.toLowerCase()
+      const category = (categories.data || []).find((item) => {
+        const label = item.libelle?.toLowerCase()
+        return label === wantedCategory
+      })
+      if (!category) throw new Error(`Catégorie « ${dish.category} » introuvable dans la base.`)
+      const body = new FormData()
+      body.append('nom', dish.name.trim())
+      body.append('description', dish.description || '')
+      body.append('prix', String(dish.price))
+      body.append('categorie_id', String(category.id))
+      if (dish.imageFile) body.append('image', dish.imageFile)
+      if (dish.id) body.append('_method', 'PATCH')
+      const response = await apiRequest(dish.id ? `/gestion/articles/${dish.id}` : '/gestion/articles', { method: 'POST', body })
+      const article = mapArticle(response.data || response)
+      setMenu((items) => dish.id ? items.map((item) => item.id === dish.id ? article : item) : [...items, article])
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+  const deleteDish = async (id) => {
+    try {
+      await apiRequest(`/gestion/articles/${id}`, { method: 'DELETE' })
+      setMenu((items) => items.filter((item) => item.id !== id))
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+
+  const setRulesFromApi = async (nextRules) => {
+    try {
+      await apiRequest('/administration/parametres-fidelite', {
+        method: 'PUT',
+        body: { parametres: {
+          points_par_1000_fcfa: nextRules.pointsPerBlock,
+          points_par_tranche_reduction: nextRules.pointsForDiscount,
+          fcfa_pour_15_points: nextRules.discountFcfa,
+          seuil_min_points_utilisation: nextRules.pointsForDiscount,
+        } },
+      })
+      setRules((current) => ({ ...current, ...nextRules, fcfaPerBlock: 1000, minPoints: nextRules.pointsForDiscount }))
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
 
   /* ---------- Réclamations ---------- */
-  const createClaim = ({ orderId, motifs, message }) => {
-    const claim = {
-      id: Date.now(), orderId, customer: `${user.firstName} ${user.lastName || ''}`.trim(),
-      when: "Aujourd'hui", motif: motifs.join(', '), message: message || 'Aucun commentaire.', status: 'nouveau', note: '',
-    }
-    setClaims((c) => [claim, ...c])
+  const createClaim = async ({ orderId, motifs, message }) => {
+    try {
+      const result = await apiRequest('/reclamations', { method: 'POST', body: {
+        commande_id: orderId, objet: motifs.join(', '), description: message?.trim() || motifs.join(', '),
+      } })
+      setClaims((current) => [mapClaim(result), ...current])
+      return { ok: true }
+    } catch (error) { return { ok: false, error: error.message } }
   }
-  const updateClaim = (id, patch) => setClaims((c) => c.map((x) => (x.id === id ? { ...x, ...patch } : x)))
+  const answerClaim = async (id, reponse) => {
+    try {
+      const result = await apiRequest(`/staff/reclamations/${id}/reponse`, { method: 'POST', body: { reponse } })
+      setClaims((current) => current.map((claim) => claim.id === id ? mapClaim(result) : claim))
+      return { ok: true }
+    } catch (error) { return { ok: false, error: error.message } }
+  }
+  const decideClaim = async (id, decision, motif, points = 0) => {
+    try {
+      const result = await apiRequest(`/gestion/reclamations/${id}/decision`, { method: 'POST', body: { decision, motif, points } })
+      setClaims((current) => current.map((claim) => claim.id === id ? mapClaim(result) : claim))
+      return { ok: true }
+    } catch (error) { return { ok: false, error: error.message } }
+  }
 
   /* ---------- Équipe ---------- */
-  const addMember = ({ firstName, lastName, email, role }) =>
-    setTeam((t) => [...t, { id: Date.now(), name: `${firstName} ${lastName}`.trim(), email, role, presence: 'Invitation envoyée', online: false }])
-  const updateMember = (id, patch) => setTeam((t) => t.map((m) => (m.id === id ? { ...m, ...patch } : m)))
-  const removeMember = (id) => setTeam((t) => t.filter((m) => m.id !== id))
+  const addMember = async ({ firstName, lastName, email, phone, role }) => {
+    try {
+      await apiRequest('/gestion/equipe', { method: 'POST', body: { nom: `${firstName} ${lastName}`.trim(), email, telephone: phone, role } })
+      const rows = await apiRequest('/gestion/equipe')
+      setTeam((rows || []).map((person) => ({ id: person.id, name: person.name, email: person.email, phone: person.telephone, role: person.role, presence: person.status === 'actif' ? 'Compte actif' : 'Compte désactivé', online: false })))
+      return { ok: true }
+    } catch (error) { return { ok: false, error: error.message } }
+  }
+  const updateMember = async (id, patch) => {
+    try {
+      const data = {}
+      if (patch.name !== undefined) data.nom = patch.name
+      if (patch.email !== undefined) data.email = patch.email
+      if (patch.phone !== undefined) data.telephone = patch.phone
+      if (patch.role !== undefined) data.role = patch.role
+      await apiRequest(`/gestion/equipe/${id}`, { method: 'PATCH', body: data })
+      const rows = await apiRequest('/gestion/equipe')
+      setTeam((rows || []).map((person) => ({ id: person.id, name: person.name, email: person.email, phone: person.telephone, role: person.role, presence: person.status === 'actif' ? 'Compte actif' : 'Compte désactivé', online: false })))
+      return { ok: true }
+    } catch (error) { return { ok: false, error: error.message } }
+  }
+  const removeMember = async (id) => {
+    try {
+      await apiRequest(`/gestion/equipe/${id}`, { method: 'DELETE' })
+      setTeam((members) => members.map((member) => member.id === id ? { ...member, presence: 'Compte désactivé', status: 'inactif' } : member))
+      return { ok: true }
+    } catch (error) { return { ok: false, error: error.message } }
+  }
 
   /* ---------- Événements / affiches ---------- */
-  const saveEvent = (ev) =>
-    setEvents((e) => (ev.id ? e.map((x) => (x.id === ev.id ? { ...x, ...ev } : x)) : [...e, { icon: 'tv', cta: 'Je participe', ...ev, id: Date.now() }]))
-  const deleteEvent = (id) => setEvents((e) => e.filter((x) => x.id !== id))
+  const saveEvent = async (event) => {
+    try {
+      const body = new FormData()
+      body.append('titre', event.title.trim())
+      body.append('description', event.text || event.badge || '')
+      body.append('date_debut', event.start)
+      body.append('date_fin', event.end)
+      body.append('points_recompense', String(event.points || 0))
+      if (event.posterFile) body.append('affiche', event.posterFile)
+      if (event.id) body.append('_method', 'PATCH')
+      const response = await apiRequest(event.id ? `/gestion/evenements/${event.id}` : '/gestion/evenements', { method: 'POST', body })
+      const mapped = mapEvenement(response)
+      setEvents((current) => event.id ? current.map((item) => item.id === event.id ? mapped : item) : [mapped, ...current])
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+  const deleteEvent = async (id) => {
+    try {
+      await apiRequest(`/gestion/evenements/${id}`, { method: 'DELETE' })
+      setEvents((current) => current.filter((event) => event.id !== id))
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+  const savePromotion = async (promotion) => {
+    try {
+      const body = new FormData()
+      body.append('titre', promotion.title.trim())
+      body.append('description', promotion.description || '')
+      body.append('taux', String(promotion.rate))
+      body.append('date_debut', promotion.start)
+      body.append('date_fin', promotion.end)
+      ;(promotion.articles || []).forEach((id) => body.append('articles[]', String(id)))
+      if (promotion.posterFile) body.append('affiche', promotion.posterFile)
+      if (promotion.id) body.append('_method', 'PATCH')
+      const response = await apiRequest(promotion.id ? `/gestion/promotions/${promotion.id}` : '/gestion/promotions', { method: 'POST', body })
+      const mapped = mapPromotion(response.data || response)
+      setPromotions((current) => promotion.id ? current.map((item) => item.id === promotion.id ? mapped : item) : [mapped, ...current])
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+  const deletePromotion = async (id) => {
+    try {
+      await apiRequest(`/gestion/promotions/${id}`, { method: 'DELETE' })
+      setPromotions((current) => current.filter((promotion) => promotion.id !== id))
+      return { ok: true }
+    } catch (error) { toast(error.message, 'error'); return { ok: false, error: error.message } }
+  }
+  const participateEvent = async (id) => {
+    try { return await apiRequest(`/evenements/${id}/participer`, { method: 'POST' }) }
+    catch (error) { return { error: error.message } }
+  }
 
   const value = {
-    user, loggedOut, login, register, logout, updateUser, changePassword, deleteAccount,
+    user, loggedOut, login, register, logout, updateUser, refreshProfile, changePassword, deleteAccount,
     cart, cartLines, cartCount, cartSubtotal, addToCart, setQty, clearCart, lastAdded, setLastAdded,
     menu, toggleAvailability, setMenuSelection, saveDish, deleteDish,
     orders, placeOrder, setOrderStatus, toggleOrderItem, encaisserEspeces, notifierCommande,
-    claims, createClaim, updateClaim,
+    claims, createClaim, answerClaim, decideClaim, pointsHistory, referrals,
     team, addMember, updateMember, removeMember,
-    events, saveEvent, deleteEvent,
-    rules, setRules,
+    events, saveEvent, deleteEvent, participateEvent, promotions, savePromotion, deletePromotion,
+    rules, setRules: setRulesFromApi,
     toasts, toast, cookieConsent, answerCookies,
   }
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

@@ -72,8 +72,8 @@ et se révoque à la déconnexion, au changement de mot de passe ou à la désac
 ### Routes
 | Méthode | URL | Accès | Rôle |
 |---|---|---|---|
-| POST | `/api/auth/inscription` | public (10/min/IP) | Crée un compte étudiant (+ code parrain facultatif) et renvoie un jeton |
-| POST | `/api/auth/connexion` | public (5/min/email+IP) | Email + mot de passe → jeton (`se_souvenir` facultatif) |
+| POST | `/api/auth/inscription` | public (10/min/IP) | Crée un compte étudiant (+ code parrain facultatif), sans confirmation email préalable |
+| POST | `/api/auth/connexion` | public (5/min/email+IP) | Email + mot de passe → jeton et notification email de connexion (`se_souvenir` facultatif) |
 | POST | `/api/auth/deconnexion` | connecté | Supprime le jeton utilisé |
 | POST | `/api/auth/mot-de-passe-oublie` | public | Envoie le lien par email (réponse identique si l'email est inconnu) |
 | POST | `/api/auth/reinitialiser-mot-de-passe` | public | Nouveau mot de passe via le lien (usage unique, 1 h) |
@@ -81,6 +81,8 @@ et se révoque à la déconnexion, au changement de mot de passe ou à la désac
 | PATCH | `/api/moi` | connecté | Modifie nom, email, téléphone, lieu de livraison |
 | PUT | `/api/moi/mot-de-passe` | connecté | Change le mot de passe (déconnecte les autres appareils) |
 | DELETE | `/api/moi` | connecté | Supprime le compte (anonymisation : l'historique des commandes est conservé) |
+
+La confirmation email ne bloque plus l'inscription ni la connexion. Après une connexion réussie, l'application envoie un email d'alerte ; si l'envoi échoue, l'accès reste ouvert. En développement, `MAIL_MAILER=log` écrit le message dans `storage/logs/laravel.log` au lieu de l'envoyer dans une boîte mail. Pour une livraison réelle, configurez les variables SMTP `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SCHEME` et `MAIL_FROM_ADDRESS` dans le fichier `.env`.
 
 Réservez une route à certains rôles avec `->middleware(['auth:api', 'role:gerant,administrateur'])`.
 
@@ -187,6 +189,7 @@ panier ──confirmer──▶ en_attente ──▶ en_preparation ──▶ pr
 | POST | `/api/commandes/{id}/confirmer` | étudiant | Confirme sans paiement (mode test uniquement) |
 | POST | `/api/commandes/{id}/annuler` | étudiant | Annule (tant que pas en préparation) |
 | GET | `/api/staff/commandes` | personnel | Les 3 colonnes : `a_preparer`, `en_cuisine`, `pret` |
+| GET | `/api/staff/statistiques` | personnel | Ventes encaissées et nombre de commandes payées depuis le début de la semaine, calculés depuis PostgreSQL |
 | POST | `/api/staff/commandes/{id}/demarrer` | personnel | Lancer la préparation |
 | POST | `/api/staff/commandes/{id}/prete` | personnel | Marquer comme prêt |
 | POST | `/api/staff/commandes/{id}/cloturer` | personnel | Clôturer (`servie` ou `livree` selon le mode) |

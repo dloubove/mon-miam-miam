@@ -1,55 +1,78 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import GameShell from './GameShell.jsx'
 import { useApp } from '../../context/AppContext.jsx'
-import { GUESS_QUESTION } from '../../data/mock.js'
+import { apiRequest } from '../../services/api.js'
 
 export default function GuessGame() {
-  const { user, updateUser } = useApp()
-  const key = `mmm_guess_${user.id}`
-  const today = new Date().toDateString()
-  const [done] = useState(() => localStorage.getItem(key) === today)
+  const { refreshProfile } = useApp()
+  const [gameId, setGameId] = useState(null)
+  const [sessionId, setSessionId] = useState(null)
+  const [question, setQuestion] = useState('Chargement du défi…')
+  const [options, setOptions] = useState([])
   const [picked, setPicked] = useState(null)
-  const answered = picked !== null
+  const [result, setResult] = useState(null)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
 
-  const pick = (i) => {
-    if (answered || done) return
-    setPicked(i)
-    try { localStorage.setItem(key, today) } catch { /* ignore */ }
-    if (i === GUESS_QUESTION.answer) updateUser({ points: (user.points || 0) + 2 })
+  useEffect(() => {
+    let actif = true
+    const start = async () => {
+      try {
+        const games = await apiRequest('/mini-jeux')
+        const game = (games || []).find((item) => item.nom_mini_jeu === 'Devine le plat')
+        if (!game) throw new Error('Le jeu « Devine le plat » n’est pas activé dans la base.')
+        if (!actif) return
+        setGameId(game.id_mini_jeu)
+        const status = await apiRequest(`/mini-jeux/${game.id_mini_jeu}/statut`)
+        if (status.joue_aujourdhui) { setDone(true); setQuestion('Tu as déjà relevé le défi aujourd’hui.'); return }
+        const challenge = await apiRequest(`/mini-jeux/${game.id_mini_jeu}/question`, { method: 'POST' })
+        if (actif) { setSessionId(challenge.session_id); setQuestion(challenge.question); setOptions(challenge.options || []) }
+      } catch (problem) { if (actif) setError(problem.message) }
+    }
+    start()
+    return () => { actif = false }
+  }, [])
+
+  const pick = async (answer) => {
+    if (!sessionId || busy || done) return
+    setBusy(true)
+    setPicked(answer)
+    try {
+      const outcome = await apiRequest(`/mini-jeux/${gameId}/parties`, { method: 'POST', body: { session_id: sessionId, reponse: answer } })
+      setResult(outcome)
+      setDone(true)
+      await refreshProfile()
+    } catch (problem) { setError(problem.message); setPicked(null) }
+    finally { setBusy(false) }
   }
   const letters = ['A', 'B', 'C', 'D']
 
   return (
     <GameShell>
       <h1 className="mt-2 text-3xl font-bold">Devine le Plat</h1>
-      <p className="mt-3 text-center text-sm text-muted">Une image de notre menu a été floutée. Sauras-tu deviner de quoi il s'agit ?</p>
-      <div className="panel mt-8 w-full p-4">
-        <div className="relative h-[280px] overflow-hidden rounded-lg">
-          <img src={GUESS_QUESTION.image} alt="Plat flouté à deviner" className={`h-full w-full object-cover transition-all duration-700 ${answered ? 'blur-0' : 'scale-110 blur-2xl'}`} />
-          {!answered && <span className="absolute inset-0 grid place-items-center text-6xl font-extrabold drop-shadow">?</span>}
-        </div>
+      <p className="mt-3 text-center text-sm text-muted">Une question quotidienne sur la carte de ZEDUCSP@CE. Une seule tentative, les points sont enregistrés dans ton compte.</p>
+      <div className="panel mt-8 grid min-h-40 w-full place-items-center p-6 text-center">
+        <p className="text-xl font-semibold text-gold">{question}</p>
       </div>
-      <h2 className="mb-4 mt-9 font-bold">Quel est ce plat ?</h2>
+      {error && <p role="alert" className="mt-5 text-center text-sm text-danger">{error}</p>}
+      <h2 className="mb-4 mt-9 font-bold">Choisis ta réponse</h2>
       <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-        {GUESS_QUESTION.options.map((o, i) => {
-          const good = answered && i === GUESS_QUESTION.answer
-          const bad = answered && picked === i && i !== GUESS_QUESTION.answer
-          return (
-            <button key={o} onClick={() => pick(i)} disabled={answered || done}
-              className={`rounded-lg border px-4 py-4 text-sm transition ${good ? 'border-ok bg-ok/10 text-ok' : bad ? 'border-danger bg-danger/10 text-danger' : 'border-line bg-surface hover:border-gold/60 disabled:opacity-50'}`}>
-              {letters[i]}. {o}
-            </button>
-          )
+        {options.map((option, index) => {
+          const good = result && result.correct && picked === option
+          const bad = result && !result.correct && picked === option
+          return <button key={option} onClick={() => pick(option)} disabled={!sessionId || busy || done}
+            className={`rounded-lg border px-4 py-4 text-sm transition ${good ? 'border-ok bg-ok/10 text-ok' : bad ? 'border-danger bg-danger/10 text-danger' : 'border-line bg-surface hover:border-gold/60 disabled:opacity-50'}`}>
+            {letters[index]}. {option}
+          </button>
         })}
       </div>
-      {(answered || done) && (
-        <div className="mt-8 text-center">
-          {answered && <p className={`font-semibold ${picked === GUESS_QUESTION.answer ? 'text-ok' : 'text-danger'}`}>{picked === GUESS_QUESTION.answer ? 'Bien joué ! +2 points ajoutés à ta cagnotte.' : 'Raté ! C\'était : ' + GUESS_QUESTION.options[GUESS_QUESTION.answer]}</p>}
-          {!answered && done && <p className="text-muted">Tu as déjà relevé le défi aujourd'hui. Reviens demain !</p>}
-          <Link to="/jeux" className="btn-gold mt-5">Retour aux jeux</Link>
-        </div>
-      )}
+      {(result || done) && <div className="mt-8 text-center">
+        {result && <p className={`font-semibold ${result.correct ? 'text-ok' : 'text-danger'}`}>{result.correct ? `Bien joué ! +${result.points_gagnes} points enregistrés.` : 'Raté ! Ta tentative du jour est utilisée.'}</p>}
+        {done && !result && <p className="text-muted">Reviens demain pour un nouveau défi.</p>}
+        <Link to="/jeux" className="btn-gold mt-5">Retour aux jeux</Link>
+      </div>}
     </GameShell>
   )
 }

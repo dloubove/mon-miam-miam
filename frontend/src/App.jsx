@@ -10,6 +10,7 @@ import DirectionLayout from './layouts/DirectionLayout.jsx'
 
 import Home from './pages/Home.jsx'
 import AuthPage from './pages/auth/AuthPage.jsx'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage.jsx'
 import CartPage from './pages/student/CartPage.jsx'
 import StudentSpace from './pages/student/StudentSpace.jsx'
 import ProfilePage from './pages/ProfilePage.jsx'
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/connexion" element={<AuthPage mode="login" />} />
         <Route path="/inscription" element={<AuthPage mode="register" />} />
+        <Route path="/reinitialisation" element={<ResetPasswordPage />} />
         <Route path="/menu/:type" element={<MenuPage />} />
         <Route path="/panier" element={<CartPage />} />
 
@@ -87,12 +89,8 @@ export default function App() {
             <Route path="/direction" element={<Dashboard />} />
             <Route path="/direction/catalogue" element={<Catalogue />} />
             <Route path="/direction/marketing" element={<Marketing />} />
-            <Route path="/direction/profil" element={<ProfilePage variant="direction" />} />
-          </Route>
-        </Route>
-        <Route element={<RequireRole roles={['administrateur']} />}>
-          <Route element={<DirectionLayout />}>
             <Route path="/direction/equipe" element={<Team />} />
+            <Route path="/direction/profil" element={<ProfilePage variant="direction" />} />
           </Route>
         </Route>
 

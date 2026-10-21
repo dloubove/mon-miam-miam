@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -17,7 +18,21 @@ class ImageService
     /** Enregistre le fichier et renvoie son chemin relatif. Le nom est aléatoire (pas de collision, pas de nom dangereux). */
     public function enregistrer(UploadedFile $fichier, string $dossier): string
     {
-        return $fichier->store($dossier, self::DISQUE);
+        $chemin = $fichier->store($dossier, self::DISQUE);
+
+        // Certains environnements ont un dossier public/storage réel au lieu
+        // du lien créé par `storage:link`. Publier une copie rend /storage/... accessible.
+        $source = Storage::disk(self::DISQUE)->path($chemin);
+        $destination = public_path('storage/'.$chemin);
+        File::ensureDirectoryExists(dirname($destination));
+
+        $sourceReel = realpath($source);
+        $destinationReel = realpath($destination);
+        if ($sourceReel && $sourceReel !== $destinationReel) {
+            File::copy($source, $destination);
+        }
+
+        return $chemin;
     }
 
     /** Supprime un fichier s'il existe (sans erreur s'il a déjà disparu). */
@@ -25,6 +40,7 @@ class ImageService
     {
         if ($chemin) {
             Storage::disk(self::DISQUE)->delete($chemin);
+            File::delete(public_path('storage/'.$chemin));
         }
     }
 

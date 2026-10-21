@@ -4,7 +4,7 @@ import { ArrowRight, Lock, Mail } from 'lucide-react'
 import AuthLayout from '../../layouts/AuthLayout.jsx'
 import { Field, Modal, PasswordInput } from '../../components/ui.jsx'
 import { useApp } from '../../context/AppContext.jsx'
-import { DELIVERY_PLACES, DEMO_USERS, HOME_BY_ROLE } from '../../data/mock.js'
+import { DELIVERY_PLACES, HOME_BY_ROLE } from '../../data/mock.js'
 import { isEmail, isStrongPassword } from '../../utils/format.js'
 import { apiRequest } from '../../services/api.js'
 
@@ -26,41 +26,23 @@ function LoginForm({ onSwitch }) {
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
-  const [needsVerification, setNeedsVerification] = useState(false)
-  const [notice, setNotice] = useState(() => new URLSearchParams(window.location.search).get('email_verifie') === '1' ? 'Adresse email confirmée. Tu peux maintenant te connecter.' : '')
   const [forgot, setForgot] = useState(false)
 
   const submit = async (e) => {
     e.preventDefault()
     setError('')
-    setNotice('')
-    setNeedsVerification(false)
     if (!isEmail(email) || !password) return setError('Renseignez un email valide et votre mot de passe.')
     const res = await login(email, password, remember)
     if (!res.ok) {
       setError(res.error)
-      setNeedsVerification(res.code === 'email_non_verifie')
       return
     }
     navigate(location.state?.from || HOME_BY_ROLE[res.user.role], { replace: true })
   }
-  const resendVerification = async () => {
-    try {
-      const result = await apiRequest('/auth/renvoyer-verification-email', { method: 'POST', body: { email } })
-      setNotice(result.message)
-      setError('')
-    } catch (sendError) {
-      setError(sendError.message)
-    }
-  }
-  const demo = async (u) => {
-    const res = await login(u.email, 'Demo1234')
-    if (res.ok) navigate(HOME_BY_ROLE[u.role])
-  }
-
   return (
     <>
       <form onSubmit={submit} className="space-y-5" noValidate>
+        {location.state?.message && <p role="status" className="rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success">{location.state.message}</p>}
         <Field label="Adresse Email">
           <div className="relative">
             <Mail size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
@@ -79,8 +61,6 @@ function LoginForm({ onSwitch }) {
           Se souvenir de moi
         </label>
         {error && <p className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">{error}</p>}
-        {notice && <p className="rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success" role="status">{notice}</p>}
-        {needsVerification && <button type="button" onClick={resendVerification} className="text-left text-sm font-semibold text-gold hover:underline">Renvoyer le lien de confirmation</button>}
         <button className="btn-gold w-full !py-3.5 text-xs font-bold uppercase tracking-wider shadow-[0_0_24px_rgba(207,189,151,.25)]">
           Se connecter <ArrowRight size={15} />
         </button>
@@ -88,17 +68,6 @@ function LoginForm({ onSwitch }) {
           Pas encore de compte ? <button type="button" onClick={() => onSwitch('register')} className="font-bold text-gold">Inscrivez-vous ici</button>
         </p>
       </form>
-
-      {import.meta.env.DEV && (
-        <div className="mt-6 border-t border-line pt-4">
-          <p className="mb-2 text-[11px] uppercase tracking-wider text-muted">Accès démo (mode dev)</p>
-          <div className="flex flex-wrap gap-2">
-            {DEMO_USERS.map((u) => (
-              <button key={u.id} type="button" onClick={() => demo(u)} className="rounded-md border border-line px-2.5 py-1 text-[11px] text-muted hover:border-gold hover:text-gold">{u.role}</button>
-            ))}
-          </div>
-        </div>
-      )}
 
       <Modal open={forgot} onClose={() => setForgot(false)} title="Mot de passe oublié" subtitle="Nous vous envoyons un lien valable 1 heure." size="sm">
         <ForgotForm onDone={() => setForgot(false)} />
@@ -148,21 +117,12 @@ function RegisterForm() {
     if (Object.keys(err).length) return
     const res = await register(f)
     if (!res.ok) return setErrors({ email: res.error })
-    setNotice(res.message || `Compte créé. Consulte ${res.email} pour confirmer ton adresse email.`)
-  }
-
-  const resendVerification = async () => {
-    try {
-      const result = await apiRequest('/auth/renvoyer-verification-email', { method: 'POST', body: { email: f.email } })
-      setNotice(result.message)
-    } catch (error) {
-      setErrors((current) => ({ ...current, email: error.message }))
-    }
+    setNotice(res.message || 'Compte créé. Vous pouvez maintenant vous connecter.')
   }
 
   return (
     <form onSubmit={submit} className="space-y-5" noValidate>
-      {notice && <div className="space-y-2 rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success" role="status"><p>{notice}</p><button type="button" onClick={resendVerification} className="font-semibold underline">Renvoyer le lien de confirmation</button></div>}
+      {notice && <div className="rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success" role="status">{notice}</div>}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Comment tu t'appelles ?" error={errors.name}><input className="field" placeholder="Marc Dupont" value={f.name} onChange={set('name')} /></Field>
         <Field label="Ton numéro WhatsApp" error={errors.phone}><input className="field" placeholder="699 00 00 00" value={f.phone} onChange={set('phone')} inputMode="tel" /></Field>

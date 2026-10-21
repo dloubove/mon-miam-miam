@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Bike, Check, Copy, MessageCircle, Phone, Star, UserPlus } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
 import { Modal } from '../../components/ui.jsx'
-import { PAST_ORDERS } from '../../data/mock.js'
+import { getApiToken } from '../../services/api.js'
 import { fcfa } from '../../utils/format.js'
 
 const STATUS_TEXT = { a_preparer: 'est en attente de préparation', en_cuisine: 'est en préparation', pret: 'est prête' }
@@ -50,16 +50,16 @@ function TrackingModal({ order, onClose }) {
   )
 }
 
-function IncidentModal({ order, onClose, onSent }) {
+function IncidentModal({ order, onClose }) {
   const { createClaim, toast } = useApp()
   const [sel, setSel] = useState([])
   const [msg, setMsg] = useState('')
   const toggle = (p) => setSel((s) => (s.includes(p) ? s.filter((x) => x !== p) : [...s, p]))
-  const send = () => {
+  const send = async () => {
     if (!sel.length) return toast('Sélectionnez au moins un problème', 'error')
-    createClaim({ orderId: order.id, motifs: sel, message: msg })
+    const result = await createClaim({ orderId: order.id, motifs: sel, message: msg })
+    if (!result?.ok) return toast(result?.error || 'La réclamation n’a pas été enregistrée.', 'error')
     toast('Réclamation envoyée. Nous revenons vers vous vite !')
-    onSent(order.id)
     setSel([]); setMsg(''); onClose()
   }
   return (
@@ -83,15 +83,26 @@ function IncidentModal({ order, onClose, onSent }) {
 }
 
 export default function StudentSpace() {
-  const { user, orders, rules, toast } = useApp()
+  const { user, orders, rules, toast, pointsHistory, referrals, claims } = useApp()
   const [track, setTrack] = useState(null)
   const [incident, setIncident] = useState(null)
-  const [reported, setReported] = useState([])
 
   const current = useMemo(
-    () => [...orders].filter((o) => o.userId === user.id && o.status !== 'cloture').sort((a, b) => b.createdAt - a.createdAt)[0],
+    () => [...orders].filter((o) => o.userId === user.id && ['a_preparer', 'en_cuisine', 'pret'].includes(o.status)).sort((a, b) => b.createdAt - a.createdAt)[0],
     [orders, user.id],
   )
+  const pastOrders = useMemo(() => {
+    if (!getApiToken()) return []
+    return orders
+      .filter((order) => order.userId === user.id && order.status === 'terminee')
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map((order) => ({
+        ...order,
+        date: Number.isNaN(order.createdAt) ? 'Date inconnue' : new Date(order.createdAt).toLocaleString('fr-FR'),
+        dishes: order.items.map((item) => `${item.name} (x${item.qty})`).join(', '),
+        claim: claims.find((claim) => claim.orderId === order.id) || null,
+      }))
+  }, [orders, claims, user.id])
   const points = user.points || 0
   const deductible = Math.floor(points / rules.pointsForDiscount) * rules.discountFcfa
 
@@ -142,8 +153,31 @@ export default function StudentSpace() {
             <button onClick={copy} className="flex items-center gap-2 bg-surface-3 px-5 text-sm hover:bg-[#262626]"><Copy size={13} /> Copier</button>
           </div>
           <p className="mt-auto border-t border-line pt-5 text-sm text-muted"><span className="block pt-5">Tu as déjà parrainé <strong className="text-white">{user.referred || 0}</strong> étudiants.</span></p>
+          <div className="mt-4 space-y-2 border-t border-line pt-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted">Suivi des filleuls</p>
+            {referrals.map((friend) => <div key={friend.id} className="flex items-center justify-between gap-3 text-sm">
+              <span>{friend.nom}</span>
+              <span className="text-right text-xs text-muted">{friend.recompense_attribuee ? `Récompense versée (${friend.points_recompense} pts)` : friend.premiere_commande_payee ? 'Première commande payée' : 'En attente de première commande'}</span>
+            </div>)}
+            {!referrals.length && <p className="text-xs text-muted">Aucun filleul enregistré pour le moment.</p>}
+          </div>
         </section>
       </div>
+
+      <section className="panel mt-8 overflow-x-auto">
+        <h2 className="px-6 py-5 font-bold">Historique des points</h2>
+        <table className="w-full min-w-[520px] text-sm">
+          <thead><tr className="border-y border-line bg-surface-2 text-muted"><th className="px-6 py-4 text-left font-normal">Date</th><th className="px-6 py-4 text-left font-normal">Mouvement</th><th className="px-6 py-4 text-right font-normal">Points</th></tr></thead>
+          <tbody>
+            {pointsHistory.map((movement) => <tr key={movement.id_mouvement} className="border-b border-line last:border-0">
+              <td className="px-6 py-4 text-muted">{new Date(movement.date_mouvement).toLocaleString('fr-FR')}</td>
+              <td className="px-6 py-4">{({ gain_commande: 'Commande', gain_parrainage: 'Parrainage', gain_evenement: 'Événement', gain_mini_jeu: 'Mini-jeu', utilisation: 'Utilisation', expiration: 'Expiration', ajustement: 'Ajustement' })[movement.type_mouvement] || movement.type_mouvement}</td>
+              <td className={`px-6 py-4 text-right font-bold ${movement.nombre_points > 0 ? 'text-ok' : 'text-danger'}`}>{movement.nombre_points > 0 ? '+' : ''}{movement.nombre_points}</td>
+            </tr>)}
+            {!pointsHistory.length && <tr><td colSpan="3" className="px-6 py-8 text-center text-muted">Aucun mouvement de points enregistré.</td></tr>}
+          </tbody>
+        </table>
+      </section>
 
       <h2 className="mb-4 mt-12 text-xl font-bold">Tes anciennes commandes</h2>
       <div className="panel overflow-x-auto">
@@ -155,25 +189,25 @@ export default function StudentSpace() {
             </tr>
           </thead>
           <tbody>
-            {PAST_ORDERS.map((o) => (
+            {pastOrders.map((o) => (
               <tr key={o.id} className="border-b border-line last:border-0">
                 <td className="px-5 py-4 text-muted">{o.date}</td>
                 <td className="px-5 py-4">{o.dishes}</td>
                 <td className="px-5 py-4 text-gold">{fcfa(o.total)}</td>
                 <td className="px-5 py-4"><span className="tag !text-[11px]">{o.status}</span></td>
                 <td className="px-5 py-4 text-right text-xs">
-                  {o.claim === 'resolved' ? <span className="text-gold">Réclamation résolue</span>
-                    : reported.includes(o.id) ? <span className="text-gold">Réclamation envoyée</span>
+                  {o.claim ? <span className="text-gold">{o.claim.status === 'classe' ? `Réclamation ${o.claim.decision === 'rejetee' ? 'rejetée' : 'validée'}` : o.claim.status === 'en_cours' ? 'Réponse en attente de décision' : 'Réclamation enregistrée'}</span>
                     : <button className="text-muted underline hover:text-white" onClick={() => setIncident(o)}>Signaler un souci</button>}
                 </td>
               </tr>
             ))}
+            {!pastOrders.length && <tr><td colSpan="5" className="px-5 py-8 text-center text-muted">Aucune commande terminée pour le moment.</td></tr>}
           </tbody>
         </table>
       </div>
 
       <TrackingModal order={track} onClose={() => setTrack(null)} />
-      <IncidentModal order={incident} onClose={() => setIncident(null)} onSent={(id) => setReported((r) => [...r, id])} />
+      <IncidentModal order={incident} onClose={() => setIncident(null)} />
     </div>
   )
 }

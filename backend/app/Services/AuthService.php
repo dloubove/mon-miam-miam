@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Mail\ReinitialisationMotDePasseMail;
-use App\Mail\VerificationEmailMail;
+use App\Mail\NotificationConnexionMail;
 use App\Models\Etudiant;
 use App\Models\Utilisateur;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -63,7 +61,6 @@ class AuthService
             return $utilisateur;
         });
 
-        $this->envoyerLienVerification($utilisateur);
         return $utilisateur;
     }
 
@@ -92,45 +89,19 @@ class AuthService
             throw new HttpResponseException(response()->json(['message' => 'Ce compte est désactivé.'], 403));
         }
 
-        if (! $utilisateur->email_verified_at) {
-            throw new HttpResponseException(response()->json([
-                'code' => 'email_non_verifie',
-                'message' => 'Confirmez votre adresse email avant de vous connecter. Consultez votre boîte mail ou demandez un nouveau lien.',
-            ], 403));
-        }
-
         // Si l'algorithme de hachage a évolué depuis la création du compte, on met le hash à jour.
         if (Hash::needsRehash($utilisateur->mot_de_passe)) {
             $utilisateur->update(['mot_de_passe' => $motDePasse]);
         }
 
-        return $utilisateur;
-    }
-
-    /** Envoie un lien signé valable 24 heures ; aucun jeton API n'est émis avant sa validation. */
-    public function envoyerLienVerification(Utilisateur $utilisateur): void
-    {
-        if ($utilisateur->email_verified_at) return;
-
-        $lien = URL::temporarySignedRoute(
-            'api.auth.verifier-email',
-            now()->addHours(24),
-            ['id' => $utilisateur->id_utilisateur, 'hash' => sha1($utilisateur->email)],
-        );
-
+        // Le mail informe le propriétaire du compte, mais ne conditionne jamais l'accès.
         try {
-            Mail::to($utilisateur->email)->send(new VerificationEmailMail($utilisateur, $lien));
+            Mail::to($utilisateur->email)->send(new NotificationConnexionMail($utilisateur));
         } catch (\Throwable $erreur) {
-            // Le compte est conservé et l'étudiant pourra demander un nouveau lien.
             report($erreur);
         }
-    }
 
-    /** Réenvoi sans révéler si l'adresse existe ou est déjà confirmée. */
-    public function renvoyerVerification(string $email): void
-    {
-        $utilisateur = Utilisateur::where('email', $email)->where('statut_compte', 'actif')->first();
-        if ($utilisateur) $this->envoyerLienVerification($utilisateur);
+        return $utilisateur;
     }
 
     /**

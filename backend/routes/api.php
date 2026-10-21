@@ -5,6 +5,8 @@ use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\CommandeController;
 use App\Http\Controllers\GestionArticleController;
 use App\Http\Controllers\GestionPromotionController;
+use App\Http\Controllers\GestionPersonnelController;
+use App\Http\Controllers\FideliteController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\ReclamationController;
@@ -27,9 +29,6 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('auth')->group(function () {
     Route::post('inscription', [AuthController::class, 'inscription'])->middleware('throttle:inscription');
     Route::post('connexion', [AuthController::class, 'connexion'])->middleware('throttle:connexion');
-    Route::get('verification-email/{id}/{hash}', [AuthController::class, 'verifierEmail'])
-        ->middleware('signed')->whereNumber('id')->name('api.auth.verifier-email');
-    Route::post('renvoyer-verification-email', [AuthController::class, 'renvoyerLienVerification'])->middleware('throttle:mot-de-passe');
     Route::post('mot-de-passe-oublie', [AuthController::class, 'motDePasseOublie'])->middleware('throttle:mot-de-passe');
     Route::post('reinitialiser-mot-de-passe', [AuthController::class, 'reinitialiser'])->middleware('throttle:mot-de-passe');
 
@@ -48,6 +47,7 @@ Route::middleware(['auth:sanctum', 'compte.actif'])->prefix('moi')->group(functi
 // --- Catalogue : routes publiques (visiteurs non connectés compris) -------
 Route::get('categories', [CatalogueController::class, 'categories']);
 Route::get('menu-du-jour', [CatalogueController::class, 'menuDuJour']);
+Route::get('regles-fidelite', [AdministrationController::class, 'reglesFidelite']);
 
 // --- Paiements Mobile Money : initiation par l'étudiant, notification signée par l'agrégateur ---
 Route::match(['get', 'post'], 'paiements/notification', [PaiementController::class, 'notification'])->middleware('throttle:api');
@@ -70,15 +70,22 @@ Route::middleware(['auth:sanctum', 'compte.actif', 'role:gerant,administrateur']
 Route::get('evenements', [EvenementController::class, 'index']);
 Route::get('mini-jeux', [EvenementController::class, 'jeux']);
 Route::middleware(['auth:sanctum', 'compte.actif', 'role:etudiant'])->group(function () {
+    Route::get('fidelite/historique', [FideliteController::class, 'historique']);
+    Route::get('parrainages', [FideliteController::class, 'parrainages']);
     Route::post('evenements/{evenement}/participer', [EvenementController::class, 'participer'])->whereNumber('evenement');
     Route::post('mini-jeux/{jeu}/question', [EvenementController::class, 'question'])->whereNumber('jeu')->middleware('throttle:connexion');
     Route::post('mini-jeux/{jeu}/parties', [EvenementController::class, 'jouer'])->whereNumber('jeu')->middleware('throttle:connexion');
+    Route::post('mini-jeux/{jeu}/roue', [EvenementController::class, 'tournerRoue'])->whereNumber('jeu')->middleware('throttle:connexion');
+    Route::get('mini-jeux/{jeu}/statut', [EvenementController::class, 'statutJeu'])->whereNumber('jeu');
     Route::get('classement', [EvenementController::class, 'classement']);
 });
 
 // --- Administration : indicateurs simples et comptes/règles ---
-Route::middleware(['auth:sanctum', 'compte.actif', 'role:administrateur'])->prefix('administration')->group(function () {
+Route::middleware(['auth:sanctum', 'compte.actif', 'role:gerant,administrateur'])->prefix('administration')->group(function () {
     Route::get('tableau-de-bord', [AdministrationController::class, 'tableauDeBord']);
+    Route::get('top-clients', [AdministrationController::class, 'topClients']);
+});
+Route::middleware(['auth:sanctum', 'compte.actif', 'role:administrateur'])->prefix('administration')->group(function () {
     Route::get('equipe', [AdministrationController::class, 'equipe']);
     Route::get('restaurants/{restaurant}/etudiants', [AdministrationController::class, 'etudiantsRestaurant'])->whereNumber('restaurant');
     Route::get('parametres-fidelite', [AdministrationController::class, 'parametres']);
@@ -87,6 +94,7 @@ Route::middleware(['auth:sanctum', 'compte.actif', 'role:administrateur'])->pref
 
 // --- Service quotidien : employé, gérant, administrateur ------------------
 Route::middleware(['auth:sanctum', 'compte.actif', 'role:employe,gerant,administrateur'])->prefix('staff')->group(function () {
+    Route::get('statistiques', [StaffCommandeController::class, 'statistiques']);
     Route::get('menu', [StaffMenuController::class, 'show']);                                   // articles + présence au menu
     Route::put('menu-du-jour', [StaffMenuController::class, 'composer']);                       // composer le menu du jour
     Route::patch('articles/{article}/disponibilite', [StaffMenuController::class, 'disponibilite']); // rupture / disponible
@@ -113,6 +121,10 @@ Route::middleware(['auth:sanctum', 'compte.actif', 'role:etudiant'])->prefix('co
 
 // --- Direction : gérant et administrateur ---------------------------------
 Route::middleware(['auth:sanctum', 'compte.actif', 'role:gerant,administrateur'])->prefix('gestion')->group(function () {
+    Route::get('equipe', [GestionPersonnelController::class, 'index']);
+    Route::post('equipe', [GestionPersonnelController::class, 'store']);
+    Route::patch('equipe/{id}', [GestionPersonnelController::class, 'update'])->whereNumber('id');
+    Route::delete('equipe/{id}', [GestionPersonnelController::class, 'destroy'])->whereNumber('id');
     // Catalogue des articles
     Route::get('articles', [GestionArticleController::class, 'index']);
     Route::post('articles', [GestionArticleController::class, 'store']);
@@ -126,4 +138,9 @@ Route::middleware(['auth:sanctum', 'compte.actif', 'role:gerant,administrateur']
     Route::post('promotions', [GestionPromotionController::class, 'store']);
     Route::match(['put', 'patch'], 'promotions/{promotion}', [GestionPromotionController::class, 'update']);
     Route::delete('promotions/{promotion}', [GestionPromotionController::class, 'destroy']);
+
+    Route::get('evenements', [EvenementController::class, 'gererIndex']);
+    Route::post('evenements', [EvenementController::class, 'creerEvenement']);
+    Route::match(['put', 'patch'], 'evenements/{id}', [EvenementController::class, 'modifierEvenement'])->whereNumber('id');
+    Route::delete('evenements/{id}', [EvenementController::class, 'supprimerEvenement'])->whereNumber('id');
 });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Bell, CircleCheck, MessageCircle } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
+import { apiRequest } from '../../services/api.js'
 import { minutesAgo } from '../../utils/format.js'
 
 const ModeBadge = ({ mode }) =>
@@ -46,9 +47,25 @@ function Column({ icon, title, count, children }) {
 export default function StaffOrders() {
   const { orders, setOrderStatus, encaisserEspeces, notifierCommande } = useApp()
   const [, tick] = useState(0)
+  const [weeklyStats, setWeeklyStats] = useState(null)
+  const [statsError, setStatsError] = useState('')
   useEffect(() => {
     const t = setInterval(() => tick((n) => n + 1), 30000)
     return () => clearInterval(t)
+  }, [])
+  useEffect(() => {
+    let active = true
+    const load = async () => {
+      try {
+        const stats = await apiRequest('/staff/statistiques')
+        if (active) { setWeeklyStats(stats); setStatsError('') }
+      } catch (error) {
+        if (active) setStatsError(error.message)
+      }
+    }
+    load()
+    const timer = setInterval(load, 60000)
+    return () => { active = false; clearInterval(timer) }
   }, [])
 
   const by = (s) => orders.filter((o) => o.status === s).sort((a, b) => a.createdAt - b.createdAt)
@@ -62,6 +79,11 @@ export default function StaffOrders() {
         <h1 className="text-3xl font-bold">Service en cours</h1>
         <p className="flex items-center gap-2.5 text-sm text-[#b5b5b5]"><span className="h-2.5 w-2.5 rounded-full bg-ok" /> Réception des commandes active</p>
       </div>
+      <section className="mb-6 flex flex-wrap items-center gap-6 rounded-xl border border-line bg-surface-2 px-5 py-4" aria-label="Ventes de la semaine">
+        <div><p className="text-xs text-muted">Ventes cette semaine</p><p className="mt-1 text-xl font-bold">{weeklyStats ? `${Number(weeklyStats.chiffre_affaires_fcfa).toLocaleString('fr-FR')} FCFA` : '—'}</p></div>
+        <div><p className="text-xs text-muted">Commandes payées</p><p className="mt-1 text-xl font-bold">{weeklyStats?.commandes_payees ?? '—'}</p></div>
+        {statsError && <p className="text-xs text-danger" role="alert">Statistiques indisponibles : {statsError}</p>}
+      </section>
       <div className="grid gap-6 lg:grid-cols-3">
         <Column icon={<Bell size={16} className="text-danger" fill="currentColor" />} title="À Préparer" count={todo.length}>
           {todo.map((o) => {
@@ -76,6 +98,7 @@ export default function StaffOrders() {
                   </p>
                   <ModeBadge mode={o.mode} />
                 </div>
+                {(o.client?.nom || o.address) && <p className="mb-3 text-xs text-[#bbb]">{o.client?.nom && <span className="font-semibold">{o.client.nom}</span>}{o.client?.telephone && <span> · {o.client.telephone}</span>}{o.address && <span className="mt-1 block text-gold">Adresse : {o.address}</span>}</p>}
                 <Items order={o} />
                 {o.note && <p className="mt-4 flex items-center gap-2 rounded-md border border-line bg-black px-3 py-2.5 text-xs text-[#ccc]"><MessageCircle size={11} className="text-muted" /> "{o.note}"</p>}
                 <button className={`mt-4 w-full rounded-lg py-3 text-sm font-bold transition ${urgent ? 'bg-danger text-white hover:bg-[#dc3a3a]' : 'bg-surface-3 text-white hover:bg-[#2a2a2a]'}`} onClick={() => setOrderStatus(o.id, 'en_cuisine')}>Lancer la préparation</button>
@@ -92,6 +115,7 @@ export default function StaffOrders() {
                 <p className="flex items-center gap-2.5 text-lg font-bold">#{o.id} <span className="text-[9px] font-bold uppercase tracking-wide text-gold">En cours</span></p>
                 <ModeBadge mode={o.mode} />
               </div>
+              {(o.client?.nom || o.address) && <p className="mb-3 text-xs text-[#bbb]">{o.client?.nom && <span className="font-semibold">{o.client.nom}</span>}{o.client?.telephone && <span> · {o.client.telephone}</span>}{o.address && <span className="mt-1 block text-gold">Adresse : {o.address}</span>}</p>}
               <Items order={o} interactive />
               <button className="btn-gold mt-4 w-full !py-3 font-bold" onClick={() => setOrderStatus(o.id, 'pret')}>Marquer comme PRÊT</button>
             </article>
@@ -106,6 +130,7 @@ export default function StaffOrders() {
                 <p className="flex items-center gap-2.5 text-lg font-bold">#{o.id} <span className="text-[9px] font-bold uppercase tracking-wide text-ok">En attente retrait</span></p>
                 <ModeBadge mode={o.mode} />
               </div>
+              {(o.client?.nom || o.address) && <p className="mb-3 text-xs text-[#bbb]">{o.client?.nom && <span className="font-semibold">{o.client.nom}</span>}{o.client?.telephone && <span> · {o.client.telephone}</span>}{o.address && <span className="mt-1 block text-gold">Adresse : {o.address}</span>}</p>}
               <Items order={o} />
               {o.payment === 'especes' && o.paymentStatus === 'en_attente' && <p className="mt-3 rounded-md bg-[#cfbd97]/10 px-3 py-2 text-xs text-gold">Paiement en espèces à encaisser</p>}
               <div className="mt-4 grid grid-cols-2 gap-3">

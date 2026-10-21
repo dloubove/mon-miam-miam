@@ -4,6 +4,8 @@ namespace Tests\Feature\Auth;
 
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NotificationConnexionMail;
 use Tests\Concerns\GereLesConnexions;
 use Tests\TestCase;
 
@@ -37,6 +39,16 @@ class ConnexionTest extends TestCase
             ->assertOk()
             ->assertJsonPath('utilisateur.personnel.matricule', 'EMP-102')
             ->assertJsonMissingPath('utilisateur.etudiant');
+    }
+
+    public function test_une_connexion_reussie_envoie_un_email_de_notification(): void
+    {
+        Mail::fake();
+
+        $this->postJson('/api/auth/connexion', ['email' => 'etudiant@ucac-icam.com', 'mot_de_passe' => $this->motDePasse])
+            ->assertOk();
+
+        Mail::assertSent(NotificationConnexionMail::class, fn ($mail) => $mail->hasTo('etudiant@ucac-icam.com'));
     }
 
     public function test_un_mauvais_mot_de_passe_est_refuse(): void

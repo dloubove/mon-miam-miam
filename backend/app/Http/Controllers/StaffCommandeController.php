@@ -9,6 +9,7 @@ use App\Models\Commande;
 use App\Services\CommandeService;
 use App\Services\PaiementService;
 use App\Services\RestaurantService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -44,6 +45,25 @@ class StaffCommandeController extends Controller
             'a_preparer' => $colonne('en_attente'),
             'en_cuisine' => $colonne('en_preparation'),
             'pret' => $colonne('prete'),
+        ]);
+    }
+
+    /** Statistiques de ventes de la semaine pour le restaurant courant. */
+    public function statistiques(): JsonResponse
+    {
+        $debutSemaine = now()->startOfWeek();
+        $restaurant = $this->restaurants->id();
+
+        $ventes = DB::table('paiement as p')
+            ->join('commande as c', 'c.id_commande', '=', 'p.id_commande')
+            ->where('c.id_restaurant', $restaurant)
+            ->where('p.statut_paiement', 'reussi')
+            ->where('p.date_paiement', '>=', $debutSemaine);
+
+        return response()->json([
+            'semaine_debut' => $debutSemaine->toDateString(),
+            'commandes_payees' => (clone $ventes)->distinct('c.id_commande')->count('c.id_commande'),
+            'chiffre_affaires_fcfa' => (int) (clone $ventes)->sum('p.montant_paye'),
         ]);
     }
 
