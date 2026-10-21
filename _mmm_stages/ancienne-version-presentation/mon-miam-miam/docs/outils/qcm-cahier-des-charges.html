@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>QCM — Cahier des charges Mon Miam Miam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f2e8;--card:#fff;--tx:#161410;--mu:#6f6856;--bd:#e3dac6;--pr:#cfbd97;--ok:#1f6b3a;--okb:#dcefe0;--ko:#9a2b1f;--kob:#f6dcd8;--k:#000;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15130f;--card:#201d17;--tx:#f3ede0;--mu:#a89f8a;--bd:#38332a;--ok:#7fd49a;--okb:#1f3a2a;--ko:#ff9d90;--kob:#43221d;--k:#cfbd97}}
+:root[data-theme="dark"]{--bg:#15130f;--card:#201d17;--tx:#f3ede0;--mu:#a89f8a;--bd:#38332a;--ok:#7fd49a;--okb:#1f3a2a;--ko:#ff9d90;--kob:#43221d;--k:#cfbd97}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 Poppins,system-ui,"Segoe UI",Arial,sans-serif}
+header{background:var(--pr);color:#000;padding:18px 16px}
+header b{display:block;font-size:19px;font-weight:600}header span{font-size:13px}
+main{max-width:640px;margin:0 auto;padding:16px 16px 40px}
+h2{font-size:21px;font-weight:600;margin:6px 0 8px}
+p{margin:0 0 12px}
+.mu{color:var(--mu);font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:18px;margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+.chip{border:1px solid var(--k);background:var(--card);color:var(--tx);border-radius:99px;padding:7px 14px;font:500 13px Poppins,system-ui,sans-serif;cursor:pointer}
+.chip.on{background:var(--k);color:var(--bg)}
+.btn{background:var(--k);color:var(--bg);border:0;border-radius:14px;padding:14px 18px;font:600 15px Poppins,system-ui,sans-serif;cursor:pointer;width:100%;margin-top:6px}
+.btn.o{background:none;color:var(--tx);border:1px solid var(--k)}
+.top{display:flex;justify-content:space-between;font-size:13px;color:var(--mu);margin-bottom:8px}
+.bar{height:8px;background:var(--bd);border-radius:9px;overflow:hidden;margin-bottom:16px}.bar i{display:block;height:100%;background:var(--k);transition:width .3s}
+.tag{display:inline-block;background:var(--pr);color:#000;border-radius:99px;font:600 11px Poppins,system-ui,sans-serif;padding:3px 10px;margin-bottom:10px}
+.q{font-size:17px;font-weight:600;line-height:1.4;margin-bottom:14px}
+.opt{display:block;width:100%;text-align:left;background:var(--card);color:var(--tx);border:1.5px solid var(--bd);border-radius:14px;padding:13px 14px;margin-bottom:10px;font:15px/1.4 Poppins,system-ui,sans-serif;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--k)}
+.opt.ok{background:var(--okb);border-color:var(--ok);color:var(--ok);font-weight:500}
+.opt.ko{background:var(--kob);border-color:var(--ko);color:var(--ko)}
+.opt:disabled{cursor:default}
+.ex{background:var(--card);border-left:4px solid var(--pr);border-radius:12px;padding:12px 14px;margin:6px 0 4px;font-size:14px}
+.big{font-size:48px;font-weight:600;line-height:1.1}
+.row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px}.row span:first-child{width:92px;flex:none}.row .bar{flex:1;margin:0}.row b{width:44px;text-align:right;font-weight:500}
+</style></head>
+<body>
+<header><b>QCM · Mon Miam Miam</b><span>Maîtriser le cahier des charges, avec corrigés</span></header>
+<main id="app"></main>
+<script>
+const TH=["Contexte","Rôles","Étudiant","Fidélité","Technique","Paiement","Livrables"];
+// Format : [thème, question, [bonne réponse, faux, faux, faux], corrigé]
+const Q=[
+[0,"Comment les commandes sont-elles prises jusqu'ici au restaurant ?",["Par messagerie et par appel","Uniquement sur place, au comptoir","Via un site web existant","Par courrier"],"Victime de son succès, ZeDuc@Space reçoit ses commandes par messagerie et appel, ce qui dépasse les employés."],
+[0,"Lequel de ces éléments n'est PAS un objectif de l'application ?",["Gérer la comptabilité et la paie du personnel","Améliorer le suivi des commandes","Assurer la traçabilité des ventes","Offrir des statistiques en temps réel"],"Objectifs du cahier : suivi des commandes, gestion des livraisons, traçabilité des ventes, statistiques en temps réel, promotions, événements et mini-jeux."],
+[0,"Quelle est la nature de l'application demandée ?",["Une application web, avec extension mobile possible","Une application mobile native uniquement","Un logiciel de bureau","Un site vitrine statique"],"Le projet comprend une application web avec paiement mobile, et une extension possible vers une application mobile."],
+[0,"Lequel de ces acteurs n'est PAS cité comme partie prenante ?",["Les livreurs externes","La direction du restaurant","Le gérant","Les étudiants"],"Parties prenantes : la direction, le gérant, les employés et les étudiants."],
+[1,"Que peut faire le gérant concernant les comptes employés ?",["Seulement en ajouter","Les ajouter, modifier et supprimer","Aucune action","Seulement les supprimer"],"Le gérant ajoute des employés. L'administrateur est le seul à pouvoir aussi les modifier et les supprimer."],
+[1,"Qui valide ou rejette les réponses aux réclamations proposées par les employés ?",["Le gérant","L'étudiant","L'employé lui-même","Le livreur"],"Les employés suivent et répondent aux réclamations ; le gérant valide ou rejette les réponses proposées."],
+[1,"Quel espace donne accès aux statistiques de ventes de la semaine ?",["L'espace employé","L'espace étudiant","Aucun espace","Uniquement le site public"],"Les employés consultent les statistiques hebdomadaires pour ajuster leur flux de travail."],
+[1,"Qui peut faire des mises à jour temporaires du menu (plat épuisé, plat du jour) ?",["Les employés","Les étudiants","Personne","Uniquement les visiteurs"],"Mise à jour temporaire = espace employé. L'administrateur gère le menu complet (créer, modifier, supprimer)."],
+[1,"Quelle fonctionnalité est propre à l'administrateur ?",["Gérer les paramètres généraux (heures d'ouverture, politiques)","Valider les commandes après service","Surveiller les commandes en temps réel","Laisser un commentaire après livraison"],"La gestion des paramètres de l'application est un droit de l'administrateur."],
+[2,"Quelle règle s'applique au mot de passe de l'étudiant ?",["Au moins une majuscule et au moins un chiffre","Au moins 20 caractères","Uniquement des lettres minuscules","Aucune règle"],"Inscription : email, mot de passe (une majuscule et un chiffre minimum), localisation, nom, téléphone."],
+[2,"Comment les commandes peuvent-elles être servies ?",["Sur place (avec heure d'arrivée) ou en livraison","Uniquement en livraison","Uniquement à emporter","Uniquement sur place"],"Les commandes sont servies sur place (heure d'arrivée) ou sous livraison."],
+[2,"Quand l'étudiant peut-il laisser un commentaire sur une commande ?",["Une fois la commande livrée","Avant de commander","Jamais","Uniquement après 30 jours"],"Le client peut laisser un commentaire une fois sa commande livrée."],
+[2,"Que montre la liste des « 10 meilleurs clients » ?",["Les clients ayant le plus de commandes, filtrables par mois, semaine ou jour","Les 10 plats les plus chers","Les 10 employés les plus rapides","Les clients ayant le plus de réclamations"],"Classement par nombre de commandes, avec des filtres sur le mois, la semaine et le jour."],
+[2,"À quoi sert la fenêtre sur les cookies ?",["Informer de leur finalité et demander le consentement de l'utilisateur","Bloquer l'accès au site","Afficher les promotions","Calculer les points de fidélité"],"Exigence de conformité RGPD : informer sur la finalité des cookies et recueillir le consentement."],
+[2,"Sous quelle forme l'administrateur introduit-il les offres et jeux ?",["Sous forme d'affiches","Sous forme de vidéos","Par SMS uniquement","Dans le menu du jour"],"Gestion des promotions : les offres et jeux sont introduits sous forme d'affiches."],
+[3,"Quelle est la règle de conversion pour gagner des points ?",["1 000 F dépensés = 1 point","100 F dépensés = 1 point","1 F dépensé = 1 point","10 000 F dépensés = 1 point"],"Exemple du cahier : 1000 F dépensés = 1 point (taux paramétrable par l'administrateur)."],
+[3,"Combien vaut la conversion des points en réduction ?",["15 points = 1 000 F de réduction","1 point = 1 000 F","100 points = 100 F","15 points = 15 000 F"],"Exemple du cahier : 15 points = 1000 de réduction."],
+[3,"Combien de points faut-il pour 2 000 F de réduction avec le taux du cahier ?",["30 points","15 points","20 points","45 points"],"15 points valent 1 000 F, donc 2 000 F demandent 2 × 15 = 30 points."],
+[3,"Quand le parrain gagne-t-il des points de parrainage ?",["Quand son filleul effectue une première commande réussie","Dès que le filleul s'inscrit","À chaque commande du filleul, sans limite","Quand le filleul partage son propre code"],"Le parrain est récompensé lorsque son filleul effectue une première commande avec succès."],
+[3,"Quel statut reçoit le parrainage après l'attribution des points ?",["« Récompense attribuée »","« En attente de paiement »","« Annulé »","« Expiré »"],"Une fois la récompense ajoutée au solde du parrain, le statut devient « récompense attribuée »."],
+[3,"Que doit faire le backend pour l'expiration des points (ex. 12 mois) ?",["Supprimer automatiquement les points non utilisés après la période","Demander à l'administrateur de les supprimer un par un","Ne jamais les supprimer","Les doubler"],"Le backend gère l'expiration automatiquement en supprimant les points non utilisés après la durée définie."],
+[3,"Quel champ ne fait PAS partie de la table des parrainages (referrals) ?",["Montant total","ID filleul","Date de parrainage","État (récompense obtenue ou non)"],"La table referrals contient ID parrain, ID filleul, date et état. Le montant total appartient à la table des commandes."],
+[4,"Quel endpoint crée une commande et met à jour les points de fidélité ?",["POST /orders","GET /users/{id}/points","POST /referral/generate","POST /referral/use"],"POST /orders crée la commande et met à jour les points de fidélité."],
+[4,"Quel endpoint récupère le solde de points d'un utilisateur ?",["GET /users/{id}/points","POST /orders","POST /referral/reward","GET /referral/generate"],"GET /users/{id}/points renvoie le solde actuel de points."],
+[4,"Quel endpoint attribue les points au parrain après la première commande du filleul ?",["POST /referral/reward","POST /referral/generate","POST /referral/use","GET /users/{id}/points"],"generate crée le code, use l'applique à l'inscription, reward attribue les points au parrain."],
+[4,"Lequel de ces tests unitaires est explicitement demandé ?",["Vérifier que les points sont bien attribués après une commande","Mesurer la vitesse de la connexion internet","Vérifier la couleur des boutons","Tester le démarrage de l'ordinateur"],"Tests unitaires : attribution des points, génération et utilisation des codes de parrainage, validation des récompenses."],
+[4,"Que doivent valider les tests end-to-end ?",["L'expérience utilisateur complète, de la commande à la livraison","Uniquement les fonctions du backend","Uniquement le design Figma","Uniquement la base de données"],"Les tests end-to-end vérifient le parcours complet, de la commande jusqu'à la livraison."],
+[4,"Quelles sont les couleurs de la charte graphique ?",["Primaire #cfbd97 et secondaire #000000","Primaire #000000 et secondaire #ffffff","Primaire #ff0000 et secondaire #00ff00","Primaire #cfbd97 et secondaire #ffffff"],"Charte du cahier : couleur primaire #cfbd97 (beige), couleur secondaire #000000 (noir)."],
+[4,"Dans l'architecture MVC, quel élément gère la logique métier ?",["Le contrôleur","Le modèle uniquement","La vue","La base de données seule"],"Le contrôleur gère la logique métier et relie le modèle (données) à la vue (interface)."],
+[4,"Que dit le cahier sur la contrainte « évolutive » ?",["L'application doit pouvoir accueillir plusieurs restaurants à terme","L'application doit fonctionner hors ligne","L'application doit changer de couleur chaque mois","L'application doit remplacer les employés"],"Contrainte d'évolutivité : s'adapter pour accueillir plusieurs restaurants à terme."],
+[4,"Que dit le cahier sur les technologies ?",["Frontend libre (React, Vue.js, Angular…), backend PHP / Laravel","Tout doit être en Python","Tout doit être en PHP natif sans framework","Aucune technologie web"],"Le frontend est libre selon l'aisance de l'équipe ; le backend proposé est PHP et Laravel."],
+[4,"Comment les tableaux de l'application sont-ils remplis ?",["Dynamiquement en AJAX, pour des mises à jour automatiques","À la main par les employés","Une fois par jour","Par email"],"Note du cahier : les tableaux sont dynamiquement remplis en AJAX pour des mises à jour automatiques."],
+[5,"Qu'est-ce qu'un agrégateur de paiements ?",["Un service qui regroupe plusieurs passerelles via une API unique","Une banque du restaurant","Un logiciel de comptabilité","Un type de carte bancaire"],"Il unifie cartes bancaires, mobile money, etc. Exemples cités : CinetPay, Stripe, PayDunya."],
+[5,"Quel est le statut du paiement en ligne dans les livrables ?",["Bonus, non obligatoire","Obligatoire dès le premier sprint","Interdit","Réservé à l'administrateur"],"Le cahier précise : bonus, cette fonctionnalité n'est pas obligatoire."],
+[5,"Où la clé privée de l'agrégateur est-elle utilisée ?",["Côté backend, pour authentifier et sécuriser les transactions","Côté frontend, visible par tous","Dans le menu du jour","Dans les affiches"],"La clé publique identifie les transactions côté frontend ; la clé privée sécurise les transactions côté backend."],
+[6,"Quelle est la durée du projet ?",["4 semaines, du 30 septembre au 21 octobre","1 semaine","3 mois","2 semaines"],"Le projet est réalisé sur 4 semaines [30 septembre - 21 octobre]."],
+[6,"Que faut-il faire de la maquette Figma ?",["La déployer sur Vercel pour une démonstration rapide","L'imprimer","La garder privée sans la montrer","La remplacer par du code PHP"],"La maquette interactive est un livrable : déploiement sur Vercel pour présenter interfaces et parcours."],
+[6,"Qu'est-ce que la « version test » ?",["Une préproduction pour un groupe restreint (bêta-test)","La version finale","Un document de budget","Une maquette Figma"],"Version préproduction disponible pour un groupe restreint afin de recueillir des retours avant la version finale."],
+[6,"Lequel de ces livrables est NON technique ?",["Le plan de gestion des risques","Le code source","La pipeline CI/CD","Le rapport de test"],"Livrables non techniques : documentation, gestion de projet, risques, version test, budget, mentions légales."],
+[6,"À quoi sert Jira dans ce projet ?",["Suivre les tâches, bugs et la progression, avec backlog et user stories","Héberger le code","Déployer le backend","Dessiner la maquette"],"Jira sert au planning : tâches, fonctionnalités, bugs, backlog et user stories. Le code est sur GitHub."],
+[6,"Comment collaborer sur le code avec GitHub ?",["En utilisant des branches Git pour les différentes fonctionnalités","En envoyant des fichiers par email","En travaillant tous sur la même copie","En ne versionnant rien"],"Dépôt GitHub pour versionner le code, avec des branches par fonctionnalité."]
+];
+const $=id=>document.getElementById(id),A=$("app");
+const sh=a=>{a=[...a];for(let j=a.length-1;j>0;j--){const k=Math.random()*(j+1)|0;[a[j],a[k]]=[a[k],a[j]]}return a};
+let th=-1,pool=[],i=0,sc=0,wrong=[],done=0,cur;
+function home(){
+const n=t=>Q.filter(q=>t<0||q[0]==t).length;
+A.innerHTML=`<div class="card"><h2>Teste ta maîtrise du cahier</h2><p class="mu">${Q.length} questions avec corrigé après chaque réponse. Choisis un thème ou lance tout le QCM, les questions et les réponses sont mélangées à chaque essai.</p>
+<div class="chips">${[-1,...TH.keys()].map(t=>`<button class="chip ${t==th?"on":""}" onclick="th=${t};home()">${t<0?"Tout":TH[t]} (${n(t)})</button>`).join("")}</div>
+<button class="btn" onclick="start(Q.filter(q=>th<0||q[0]==th))">Commencer</button></div>`}
+function start(list){pool=sh(list);i=0;sc=0;wrong=[];show()}
+function show(){const q=pool[i];done=0;cur=sh(q[2].map((t,n)=>({t,ok:n==0})));
+A.innerHTML=`<div class="top"><span>Question ${i+1} / ${pool.length}</span><span>Score : ${sc}</span></div><div class="bar"><i style="width:${i/pool.length*100}%"></i></div>
+<div class="card"><span class="tag">${TH[q[0]]}</span><div class="q">${q[1]}</div>${cur.map((o,n)=>`<button class="opt" onclick="pick(${n})">${o.t}</button>`).join("")}<div id="fb"></div></div>`}
+function pick(n){if(done)return;done=1;const q=pool[i],ok=cur[n].ok;if(ok)sc++;else wrong.push(q);
+document.querySelectorAll(".opt").forEach((b,k)=>{b.disabled=true;if(cur[k].ok)b.classList.add("ok");else if(k==n)b.classList.add("ko")});
+$("fb").innerHTML=`<div class="ex"><b>${ok?"Bonne réponse.":"Pas tout à fait."}</b> ${pool[i][3]}</div><button class="btn" onclick="next()">${i+1<pool.length?"Question suivante":"Voir mon résultat"}</button>`}
+function next(){i++;i<pool.length?show():end()}
+function end(){const p=Math.round(sc/pool.length*100),m=p>=90?"Maîtrise parfaite du cahier.":p>=70?"Bon niveau : revois les erreurs.":"À revoir : relis les sections concernées.";
+const st=TH.map((t,k)=>{const tot=pool.filter(q=>q[0]==k).length,bad=wrong.filter(q=>q[0]==k).length;return tot?`<div class="row"><span>${t}</span><div class="bar"><i style="width:${(tot-bad)/tot*100}%"></i></div><b>${tot-bad}/${tot}</b></div>`:""}).join("");
+A.innerHTML=`<div class="card"><p class="mu">Résultat</p><div class="big">${sc} / ${pool.length}</div><p><b>${p} %</b> · ${m}</p>${st}
+${wrong.length?`<button class="btn" onclick="start(wrong)">Revoir mes ${wrong.length} erreur${wrong.length>1?"s":""}</button>`:""}<button class="btn o" onclick="home()">Changer de thème</button></div>`}
+home();
+</script></body></html>
