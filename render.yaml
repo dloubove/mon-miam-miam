@@ -35,6 +35,12 @@ services:
         value: sync
       - key: FILESYSTEM_DISK
         value: public
+      - key: IMAGE_DISK
+        value: public
+      - key: IMAGEKIT_PRIVATE_KEY
+        sync: false
+      - key: IMAGEKIT_URL_ENDPOINT
+        sync: false
       - key: MAIL_MAILER
         value: log
       - key: COMMANDES_CONFIRMATION_DIRECTE
