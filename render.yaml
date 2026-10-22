@@ -16,7 +16,7 @@ services:
       - key: APP_KEY
         sync: false
       - key: APP_URL
-        value: https://mon-miam-miam.onrender.com
+        value: https://mon-miam-miam-8b39.onrender.com
       - key: APP_TIMEZONE
         value: Africa/Douala
       - key: LOG_CHANNEL
@@ -26,7 +26,7 @@ services:
       - key: DB_URL
         sync: false
       - key: FRONTEND_URL
-        value: https://mon-miam-miam.onrender.com
+        value: https://mon-miam-miam-8b39.onrender.com
       - key: CACHE_STORE
         value: file
       - key: SESSION_DRIVER
