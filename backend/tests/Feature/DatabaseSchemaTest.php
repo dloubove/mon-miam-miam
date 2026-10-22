@@ -68,7 +68,7 @@ class DatabaseSchemaTest extends TestCase
         $this->assertEqualsCanonicalizing(['plat', 'boisson', 'dessert', 'snack'], DB::table('categorie')->pluck('libelle_categorie')->all());
         $this->assertSame('15', DB::table('parametre')->where('cle_parametre', 'points_par_tranche_reduction')->value('valeur_parametre'));
         $this->assertSame('1000', DB::table('parametre')->where('cle_parametre', 'fcfa_pour_15_points')->value('valeur_parametre'));
-        $this->assertSame(2, DB::table('mini_jeu')->count());
+        $this->assertSame(3, DB::table('mini_jeu')->count());
     }
 
     public function test_les_comptes_de_demo_ont_le_bon_role(): void

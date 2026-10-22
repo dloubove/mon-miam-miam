@@ -34,11 +34,11 @@ class InscriptionTest extends TestCase
     {
         $reponse = $this->postJson('/api/auth/inscription', $this->formulaire());
 
-        // 201 = compte créé, utilisable sans étape de vérification email.
+        // 201 = compte créé et connecté sans étape de vérification email.
         $reponse->assertCreated()
-            ->assertJsonPath('email', 'marc.dupont@ucac-icam.com')
-            ->assertJsonPath('message', 'Compte créé. Vous pouvez maintenant vous connecter.')
-            ->assertJsonMissingPath('jeton');
+            ->assertJsonPath('utilisateur.email', 'marc.dupont@ucac-icam.com')
+            ->assertJsonPath('type', 'Bearer')
+            ->assertJsonStructure(['jeton']);
 
         // Le mot de passe ne doit JAMAIS apparaître dans la réponse.
         $this->assertStringNotContainsString('mot_de_passe', $reponse->getContent());

@@ -6,6 +6,7 @@ use App\Mail\ReinitialisationMotDePasseMail;
 use App\Mail\NotificationConnexionMail;
 use App\Models\Etudiant;
 use App\Models\Utilisateur;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
