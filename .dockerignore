@@ -1,0 +1,15 @@
+.git
+.github
+.vscode
+docs
+prototype-figma
+_incoming_menu_images
+**/node_modules
+**/vendor
+**/.env
+**/.env.*
+!**/.env.example
+**/storage/logs/*.log
+**/storage/framework/cache/**
+**/storage/framework/sessions/**
+**/storage/framework/views/**

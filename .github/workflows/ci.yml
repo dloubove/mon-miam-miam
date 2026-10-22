@@ -6,75 +6,71 @@ on:
   push:
     branches: [develop, main]
 
+permissions:
+  contents: read
+
 jobs:
   backend:
     name: Backend (tests Laravel)
     runs-on: ubuntu-latest
-
     services:
-       postgres:
-         image: postgres:16
-         env:
+      postgres:
+        image: postgres:16
+        env:
           POSTGRES_DB: mon_miam_miam_test
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres2026
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
-          options: >-
-            --health-cmd="pg_isready -U postgres -d mon_miam_miam_test"
-            --health-interval=10s
-            --health-timeout=5s
-            --health-retries=5
+        options: >-
+          --health-cmd="pg_isready -U postgres -d mon_miam_miam_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     steps:
       - uses: actions/checkout@v4
-      - name: Vérifier la présence du backend
-        id: has
-        run: |
-          if [ -f backend/composer.json ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
       - uses: shivammathur/setup-php@v2
-        if: steps.has.outputs.ok == 'true'
         with:
           php-version: "8.3"
-          extensions: mbstring, pdo, sqlite, pdo_sqlite
+          extensions: mbstring, pdo_pgsql
+          coverage: none
       - name: Installer les dépendances
-        if: steps.has.outputs.ok == 'true'
         working-directory: backend
         run: |
-          composer install --no-interaction --prefer-dist
+          composer install --no-interaction --prefer-dist --no-progress
           cp .env.example .env
           php artisan key:generate
       - name: Lancer les tests
-        if: steps.has.outputs.ok == 'true'
         working-directory: backend
         env:
           DB_CONNECTION: pgsql
           DB_HOST: 127.0.0.1
           DB_PORT: 5432
-          DB_DATABASE: "mon_miam_miam_test"
+          DB_DATABASE: mon_miam_miam_test
           DB_USERNAME: postgres
-          DB_PASSWORD: postgres2026
+          DB_PASSWORD: postgres
         run: php artisan test
 
   frontend:
-    name: Frontend (build React)
+    name: Frontend (lint et build React)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Vérifier la présence du frontend
-        id: has
-        run: |
-          if [ -f frontend/package.json ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "ok=false" >> "$GITHUB_OUTPUT"; fi
       - uses: actions/setup-node@v4
-        if: steps.has.outputs.ok == 'true'
         with:
           node-version: 22
-      - name: Installer et construire
-        if: steps.has.outputs.ok == 'true'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Installer les dépendances
+        working-directory: frontend
+        run: npm ci
+      - name: Vérifier le code
+        working-directory: frontend
+        run: npm run lint
+      - name: Construire l’application
         working-directory: frontend
         run: |
-          npm ci
           npm run build
           test -f ../backend/public/build/manifest.json
           test -f ../backend/public/images/logo-zeduc-space.png
           test -f ../backend/public/images/affiche.jpg
-          npm test --if-present

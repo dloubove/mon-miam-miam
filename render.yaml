@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: mon-miam-miam
+    runtime: docker
+    plan: free
+    branch: develop
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        value: https://mon-miam-miam.onrender.com
+      - key: APP_TIMEZONE
+        value: Africa/Douala
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false
+      - key: FRONTEND_URL
+        value: https://mon-miam-miam.onrender.com
+      - key: CACHE_STORE
+        value: file
+      - key: SESSION_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: FILESYSTEM_DISK
+        value: public
+      - key: MAIL_MAILER
+        value: log
+      - key: COMMANDES_CONFIRMATION_DIRECTE
+        value: "false"
+      - key: MOBILE_MONEY_MODE
+        value: simulation
