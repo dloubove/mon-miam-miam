@@ -29,10 +29,7 @@ class AuthController extends Controller
         // validated() ne contient QUE les champs déclarés dans rules() : pas de données parasites.
         $utilisateur = $this->auth->inscrire($request->validated());
 
-        return response()->json([
-            'message' => 'Compte créé. Vous pouvez maintenant vous connecter.',
-            'email' => $utilisateur->email,
-        ], 201);
+        return $this->reponseAvecJeton($utilisateur, false, 201);
     }
 
     /** POST /api/auth/connexion : échange email + mot de passe contre un jeton. */

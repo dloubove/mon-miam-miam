@@ -20,6 +20,8 @@ import GuessGame from './pages/games/GuessGame.jsx'
 import StaffOrders from './pages/staff/StaffOrders.jsx'
 import StaffMenu from './pages/staff/StaffMenu.jsx'
 import StaffClaims from './pages/staff/StaffClaims.jsx'
+import StaffStats from './pages/staff/StaffStats.jsx'
+import ReferralsPage from './pages/student/ReferralsPage.jsx'
 import Dashboard from './pages/admin/Dashboard.jsx'
 import Catalogue from './pages/admin/Catalogue.jsx'
 import Team from './pages/admin/Team.jsx'
@@ -67,6 +69,7 @@ export default function App() {
           <Route element={<StudentLayout />}>
             <Route path="/mon-espace" element={<StudentSpace />} />
             <Route path="/mon-espace/profil" element={<ProfilePage variant="etudiant" />} />
+            <Route path="/mon-espace/parrainage" element={<ReferralsPage />} />
             <Route path="/jeux" element={<GamesHome />} />
           </Route>
           <Route path="/jeux/roue" element={<WheelGame />} />
@@ -79,6 +82,7 @@ export default function App() {
             <Route path="/staff" element={<StaffOrders />} />
             <Route path="/staff/menu" element={<StaffMenu />} />
             <Route path="/staff/reclamations" element={<StaffClaims />} />
+            <Route path="/staff/statistiques" element={<StaffStats />} />
             <Route path="/staff/profil" element={<ProfilePage variant="employe" />} />
           </Route>
         </Route>
@@ -87,6 +91,9 @@ export default function App() {
         <Route element={<RequireRole roles={['gerant', 'administrateur']} />}>
           <Route element={<DirectionLayout />}>
             <Route path="/direction" element={<Dashboard />} />
+            <Route path="/direction/commandes" element={<StaffOrders />} />
+            <Route path="/direction/statistiques" element={<StaffStats />} />
+            <Route path="/direction/reclamations" element={<StaffClaims />} />
             <Route path="/direction/catalogue" element={<Catalogue />} />
             <Route path="/direction/marketing" element={<Marketing />} />
             <Route path="/direction/equipe" element={<Team />} />

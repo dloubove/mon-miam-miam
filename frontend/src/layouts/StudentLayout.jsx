@@ -76,6 +76,7 @@ export function StudentNavbar({ gamesLabel = 'La Récré (Jeux)' }) {
         <nav className="hidden items-center gap-10 md:flex">
           <NavLink to="/" end className="nav-link">Accueil</NavLink>
           <NavLink to="/mon-espace" className="nav-link">Mon Espace</NavLink>
+          <NavLink to="/mon-espace/parrainage" className="nav-link">Parrainage</NavLink>
           {inGames && <NavLink to="/jeux" className="nav-link">{gamesLabel}</NavLink>}
         </nav>
         <div className="flex items-center gap-3">
@@ -94,7 +95,7 @@ export function SiteFooter({ full = false }) {
   if (full) {
     return (
       <footer className="border-t border-line py-10 text-center">
-        <p className="text-lg font-bold tracking-wide">ZEDUC@SPACE</p>
+        <img src="/images/logo-zeduc-space.png" alt="Logo ZeDuc@Space" className="mx-auto h-16 w-16 object-contain" width="64" height="64" />
         <p className="mt-2 text-sm text-muted">Créé pour les étudiants de l'UCAC-ICAM.</p>
       </footer>
     )
