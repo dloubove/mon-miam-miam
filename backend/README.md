@@ -233,3 +233,7 @@ Le fuseau de la session PostgreSQL suit maintenant `APP_TIMEZONE` (`config/datab
 ## Plan
 1. Base de données ✅ · 2. Authentification ✅ · 3. Catalogue & menu du jour ✅ · 4. Commandes ✅ · 5. Paiement ·
 6. Réclamations · 7. Événements & mini-jeux · 8. Administration · 9. Tests, sécurité, branchement du frontend.
+
+## Frontend React / Inertia
+
+Le seul build frontend de l'application est celui du dossier `../frontend`. Depuis `backend/`, utilisez `npm run build` (qui délègue au frontend) ou `npm --prefix ../frontend run build`. Ne créez pas un second manifeste Vite depuis `backend/` : Laravel attend `public/build/manifest.json` produit par le frontend React. Les images publiques sont copiées vers `backend/public/images` par le script de build.

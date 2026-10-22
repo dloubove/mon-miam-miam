@@ -7,6 +7,7 @@ const LINKS = [
   { to: '/staff', label: 'Commandes en cours', end: true },
   { to: '/staff/menu', label: 'Menu du jour' },
   { to: '/staff/reclamations', label: 'Réclamations' },
+  { to: '/staff/statistiques', label: 'Statistiques hebdomadaires' },
 ]
 
 /** Layout de l'espace employé : barre supérieure « STAFF ZEDUC » */
@@ -17,9 +18,12 @@ export default function StaffLayout() {
       <header className="sticky top-0 z-30 border-b border-line bg-black/90 backdrop-blur">
         <div className="mx-auto flex h-[68px] max-w-[1500px] items-center justify-between gap-4 px-5 lg:px-8">
           <div className="flex items-center gap-8">
-            <Link to="/staff" className="leading-tight">
-              <span className="block text-[17px] font-extrabold tracking-wide">STAFF ZEDUC</span>
-              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-gold">Cuisine &amp; Comptoir</span>
+            <Link to="/staff" className="flex items-center gap-3 leading-tight">
+              <img src="/images/logo-zeduc-space.png" alt="Logo ZeDuc@Space" className="h-11 w-12 shrink-0 object-contain" width="48" height="44" />
+              <span>
+                <span className="block text-[15px] font-extrabold tracking-wide">STAFF ZEDUC</span>
+                <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-gold">Cuisine &amp; Comptoir</span>
+              </span>
             </Link>
             <span className="hidden h-8 w-px bg-line md:block" />
             <nav className="hidden items-center gap-6 md:flex">

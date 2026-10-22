@@ -1,24 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, EyeOff, UtensilsCrossed, X } from 'lucide-react'
+import { Eye, EyeOff, X } from 'lucide-react'
 import { initials } from '../utils/format.js'
 
 /* ---------- Logo ---------- */
 export function Logo({ subtitle = 'LA TERRASSE', to = '/', variant = 'plain', gold = false }) {
-  const mark =
-    variant === 'ring' ? (
-      <span className="grid h-9 w-9 place-items-center rounded-full border border-gold/60 bg-black text-gold">
-        <UtensilsCrossed size={16} />
-      </span>
-    ) : (
-      <UtensilsCrossed size={22} className="text-gold" />
-    )
   return (
-    <Link to={to} className="flex items-center gap-3">
-      {mark}
-      <span className="leading-tight">
-        <span className="block text-[17px] font-bold tracking-wide text-white">ZEDUC@SPACE</span>
-        <span className={`block text-[11px] tracking-wider ${gold ? 'text-gold' : 'text-muted'}`}>{subtitle}</span>
+    <Link to={to} aria-label="ZeDuc@Space — accueil" className="flex min-w-0 items-center gap-3">
+      <img
+        src="/images/logo-zeduc-space.png"
+        alt="Logo ZeDuc@Space"
+        className={`shrink-0 object-contain ${variant === 'ring' ? 'h-14 w-14' : 'h-12 w-14'}`}
+        width="56"
+        height="56"
+      />
+      <span className="min-w-0 leading-tight">
+        <span className="block text-[15px] font-bold tracking-wide text-white">ZEDUC@SPACE</span>
+        <span className={`block text-[10px] tracking-wider ${gold ? 'text-gold' : 'text-muted'}`}>{subtitle}</span>
       </span>
     </Link>
   )

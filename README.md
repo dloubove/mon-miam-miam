@@ -55,3 +55,17 @@ Personne ne pousse directement sur `main` ni `develop`. Tout passe par une pull 
 ## Équipe — Groupe 9
 
 Dan (Product Owner), Julio, Nabil, Nathan, Siméon, Kadir, Loïs.
+
+## Démarrer Mon Miam Miam (Laravel + React/Inertia)
+
+Le frontend Inertia est compilé depuis `frontend/`. **Ne lancez pas `vite build` depuis `backend/`** : cela écraserait le manifeste attendu par les pages React. Depuis la racine :
+
+```powershell
+cd frontend
+npm install
+npm run build
+cd ../backend
+php artisan serve
+```
+
+Pour le développement avec rechargement à chaud, depuis `backend/` : `composer run dev` (après installation des dépendances frontend). Les images publiques sont synchronisées vers `backend/public/images` par le script de build. Le logo officiel est `frontend/public/images/logo-zeduc-space.png`.

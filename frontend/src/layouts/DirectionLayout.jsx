@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
-import { BookOpen, ChartPie, ChevronRight, Crown, LogOut, Megaphone, Menu, UserCog, Users, X } from 'lucide-react'
+import { Activity, BookOpen, ChartPie, ChevronRight, ClipboardList, LogOut, Megaphone, MessageSquareWarning, Menu, UserCog, Users, X } from 'lucide-react'
 import { useApp } from '../context/AppContext.jsx'
 import { Avatar } from '../components/ui.jsx'
 
@@ -14,15 +14,18 @@ export default function DirectionLayout() {
 
   const links = [
     { to: '/direction', label: 'Tableau de bord', icon: ChartPie, end: true },
+    { to: '/direction/commandes', label: 'Supervision des commandes', icon: ClipboardList },
+    { to: '/direction/statistiques', label: 'Statistiques', icon: Activity },
+    { to: '/direction/reclamations', label: 'Réclamations', icon: MessageSquareWarning },
     { to: '/direction/catalogue', label: 'Le Grand Catalogue', icon: BookOpen },
-    ...(isAdmin ? [{ to: '/direction/equipe', label: "L'Équipe", icon: Users }] : []),
+    { to: '/direction/equipe', label: "L'Équipe", icon: Users },
     { to: '/direction/marketing', label: 'Marketing & Règles', icon: Megaphone },
   ]
 
   const sidebar = (
     <aside className="flex h-full w-[260px] flex-col border-r border-line bg-surface-2">
       <div className="flex items-center gap-3 border-b border-line px-5 py-5">
-        <Crown size={20} className="text-gold" />
+        <img src="/images/logo-zeduc-space.png" alt="Logo ZeDuc@Space" className="h-12 w-12 shrink-0 object-contain" width="48" height="48" />
         <div className="leading-tight">
           <p className="text-[15px] font-bold">DIRECTION</p>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-gold">ZeDuc@Space</p>

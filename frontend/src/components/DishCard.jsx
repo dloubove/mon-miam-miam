@@ -9,7 +9,21 @@ export default function DishCard({ dish }) {
     <article className="overflow-hidden rounded-xl border border-line bg-[#111]">
       <div className="relative flex h-[190px] items-center justify-center bg-[#161616]">
         {dish.image ? (
-          <img src={dish.image} alt={dish.name} className="h-full object-contain" loading="lazy" />
+          <img
+            src={dish.image}
+            alt={dish.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            onError={(event) => {
+              const fallback = dish.fallbackImage
+              if (fallback && event.currentTarget.src !== new URL(fallback, window.location.origin).href) {
+                event.currentTarget.onerror = null
+                event.currentTarget.src = fallback
+              } else {
+                event.currentTarget.style.display = 'none'
+              }
+            }}
+          />
         ) : (
           <Placeholder size={40} className="text-[#3a3a3a]" />
         )}

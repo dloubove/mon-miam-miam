@@ -80,8 +80,28 @@ export function mapUtilisateur(user) {
   }
 }
 
+// Les photos livrées avec le projet servent de secours si l'API ne possède pas
+// d'image pour un article ou si une ancienne URL /storage/... n'est plus accessible.
+const IMAGE_PAR_DEFAUT = [
+  [/poisson/i, '/images/poisson.jpg'],
+  [/poulet/i, '/images/poulet.jpg'],
+  [/boulette/i, '/images/boulettes.jpg'],
+  [/ndol/i, '/images/ndole.jpg'],
+  [/burger/i, '/images/burger.jpg'],
+  [/pizza/i, '/images/pizza.jpg'],
+  [/fol[eé]r/i, '/images/folere.jpg'],
+  [/cocktail/i, '/images/cocktail.jpg'],
+  [/gingembre|orange|jus/i, '/images/jus-orange.jpg'],
+]
+
+function imageLocaleDeSecours(nom) {
+  const correspondance = IMAGE_PAR_DEFAUT.find(([motif]) => motif.test(nom || ''))
+  return correspondance?.[1] || null
+}
+
 export function mapArticle(article) {
   const label = article.categorie?.libelle
+  const imageLocale = imageLocaleDeSecours(article.nom)
   return {
     id: article.id,
     name: article.nom,
@@ -91,7 +111,8 @@ export function mapArticle(article) {
     price: article.prix,
     oldPrice: article.prix_normal,
     promo: Boolean(article.promotion),
-    image: article.image_url,
+    image: article.image_url || imageLocale,
+    fallbackImage: imageLocale,
     available: article.disponible,
     inDailyMenu: article.dans_menu ?? true,
   }
