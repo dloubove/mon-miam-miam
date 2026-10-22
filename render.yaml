@@ -36,7 +36,7 @@ services:
       - key: FILESYSTEM_DISK
         value: public
       - key: IMAGE_DISK
-        value: public
+        value: imagekit
       - key: IMAGEKIT_PRIVATE_KEY
         sync: false
       - key: IMAGEKIT_URL_ENDPOINT
