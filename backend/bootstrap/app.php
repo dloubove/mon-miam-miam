@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Render termine TLS devant l'application et transmet le protocole HTTPS via X-Forwarded-Proto.
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [HandleInertiaRequests::class]);
         // Limite globale de requêtes sur l'API (voir RateLimiter::for('api') dans AppServiceProvider).
         $middleware->throttleApi();
