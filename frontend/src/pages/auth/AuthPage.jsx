@@ -100,9 +100,9 @@ function ForgotForm({ onDone }) {
 
 function RegisterForm() {
   const { register } = useApp()
+  const navigate = useNavigate()
   const [f, setF] = useState({ name: '', phone: '', email: '', place: '', password: '', sponsorCode: '' })
   const [errors, setErrors] = useState({})
-  const [notice, setNotice] = useState('')
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }))
 
   const submit = async (e) => {
@@ -116,13 +116,17 @@ function RegisterForm() {
     setErrors(err)
     if (Object.keys(err).length) return
     const res = await register(f)
-    if (!res.ok) return setErrors({ email: res.error })
-    setNotice(res.message || 'Compte créé. Vous pouvez maintenant vous connecter.')
-  }
+
+    if (!res.ok) {
+      return setErrors({ email: res.error })
+    }
+
+    navigate('/', { replace: true })
+    }
 
   return (
     <form onSubmit={submit} className="space-y-5" noValidate>
-      {notice && <div className="rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm text-success" role="status">{notice}</div>}
+
       <div className="grid grid-cols-2 gap-4">
         <Field label="Comment tu t'appelles ?" error={errors.name}><input className="field" placeholder="Marc Dupont" value={f.name} onChange={set('name')} /></Field>
         <Field label="Ton numéro WhatsApp" error={errors.phone}><input className="field" placeholder="699 00 00 00" value={f.phone} onChange={set('phone')} inputMode="tel" /></Field>

@@ -80,7 +80,7 @@ export default function Home() {
         </div>
         <div className="mx-auto w-full max-w-[490px] rounded-xl border border-line bg-[#111] p-0">
           <div className="flex aspect-[4/5] items-center justify-center overflow-hidden rounded-xl bg-black/60">
-            <img src="/images/affiche.jpg" alt="Affiche : Zeduc BBQ, poulet et poisson braisé à 2000 XAF" className="w-full opacity-90" />
+            <img src="/images/affiche.jpg" alt="Affiche : Zeduc BBQ, poulet et poisson braisé à 2000 XAF" className="h-full w-full object-cover opacity-90" />
           </div>
         </div>
       </section>

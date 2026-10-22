@@ -273,24 +273,42 @@ export function AppProvider({ children }) {
     }
   }
 
-  const register = async (data) => {
-    try {
-      const reponse = await apiRequest('/auth/inscription', {
-        method: 'POST',
-        body: {
-          nom: data.name.trim(), email: data.email.trim().toLowerCase(), telephone: data.phone,
-          localisation: data.place, mot_de_passe: data.password, code_parrain: data.sponsorCode || null,
-        },
-      })
-      return {
-        ok: true,
-        email: reponse.email,
-        message: reponse.message,
-      }
-    } catch (error) {
-      return { ok: false, error: error.message }
+
+const register = async (data) => {
+  try {
+    const reponse = await apiRequest('/auth/inscription', {
+      method: 'POST',
+      body: {
+        nom: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
+        telephone: data.phone,
+        localisation: data.place,
+        mot_de_passe: data.password,
+        code_parrain: data.sponsorCode || null,
+      },
+    })
+
+    // Même traitement qu'après une connexion classique.
+    const compte = mapUtilisateur(reponse.utilisateur)
+
+    // Conserve la session pendant la navigation.
+    saveApiSession(reponse.jeton, compte, false)
+    setUser(compte)
+    setLoggedOut(false)
+
+    return {
+      ok: true,
+      user: compte,
+      message: 'Compte créé avec succès ! Bienvenue sur Mon Miam Miam.',
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      error: error.message,
     }
   }
+}
+
 
   const logout = async () => {
     const wasConnected = Boolean(getApiToken())
@@ -492,11 +510,16 @@ export function AppProvider({ children }) {
   const saveDish = async (dish) => {
     try {
       const categories = await apiRequest('/categories')
-      const wantedCategory = ({ 'Plat Chaud': 'plat' })[dish.category] || dish.category.toLowerCase()
-      const category = (categories.data || []).find((item) => {
-        const label = item.libelle?.toLowerCase()
-        return label === wantedCategory
-      })
+      const wantedCategory =
+      ({ 'Plat Chaud': 'plat' })[dish.category] || dish.category.toLowerCase()
+
+      const categoryRows = Array.isArray(categories)
+      ? categories
+      : (categories.data || [])
+
+      const category = categoryRows.find(
+      (item) => item.libelle?.toLowerCase() === wantedCategory
+      )
       if (!category) throw new Error(`Catégorie « ${dish.category} » introuvable dans la base.`)
       const body = new FormData()
       body.append('nom', dish.name.trim())
