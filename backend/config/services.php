@@ -2,6 +2,9 @@
 
 return [
 
+    // Temporary, one-time administrator bootstrap; keep empty except during initial setup.
+    'admin_bootstrap_token' => env('BOOTSTRAP_ADMIN_TOKEN'),
+
     'imagekit' => [
         'private_key' => env('IMAGEKIT_PRIVATE_KEY'),
         'url_endpoint' => env('IMAGEKIT_URL_ENDPOINT'),
